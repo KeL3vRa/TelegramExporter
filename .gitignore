@@ -134,3 +134,6 @@ dmypy.json
 #Telegram session file
 my_account.session
 credential.json
+
+# Created log file
+log.*
