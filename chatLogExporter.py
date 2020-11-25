@@ -2,6 +2,30 @@ from pyrogram import Client
 from pyrogram.errors import FloodWait
 from datetime import datetime
 import time
+import json
+import sys
+
+
+def get_contact(api_id, api_hash, filtered_name):
+
+    with Client("my_account", api_id, api_hash) as app:
+        contacts = app.get_contacts()
+        saved_contact = {}
+        count = 0
+
+        for contact in contacts:
+            first_name = contact["first_name"] # from a JSON get only first name
+            last_name = contact["last_name"]
+
+            if(filtered_name.lower() in first_name.lower()): # get a specific first name from a list of contacts
+                count += 1
+                if last_name is None:
+                    saved_contact[count] = first_name + " " + contact["username"]
+                else:
+                    saved_contact[count] = first_name + " " + last_name + " " + contact["username"]
+
+        return saved_contact
+
 
 def getContactNames(api_id, api_hash, idPhoneDictionary):
     
@@ -83,6 +107,8 @@ def getChatLogs(api_id, api_hash, username, n_messages):
         return formattedLog
 
 
+
+
 def getChatDetails(api_id, api_hash, username):
     
     with Client("my_account", api_id, api_hash) as app:
@@ -104,28 +130,72 @@ def getIdFromNumber(client, api_id, api_hash, phoneNumber):
         except FloodWait as exception:
             time.sleep(28) #this value is specifically provided by Telegram, relating to the particular API calling which caused the exception
 
+def load_configuration():
+
+    api_id = ""
+    api_hash = ""
+
+    with open("credential.json") as json_file:
+        data = json.load(json_file)
+        api_id = data["api_id"]
+        api_hash = data["api_hash"]
+    
+    return api_id, api_hash
 
 
-api_id = INSERT_API_NUMBER
-api_hash = "INSERT_API_HASH"
-num_of_messages_to_retrieve = 5
-path_to_log_file = '.\\log.txt'
+def menu_get_contact():
 
-# To mantai a correspondence beteen userIds and phoneNumbers
-usernamesPhoneDictionary = dict()
-# Retrieve all contacts' name
-contactNames = getContactNames(api_id, api_hash, usernamesPhoneDictionary)
-print(contactNames)
+    # Load api_hash and api_id from JSON file
+    api_id, api_hash = load_configuration()
 
-# Create logs file
-with open(path_to_log_file, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
-    for contact in contactNames:
-        readableContactIdentifier = contact
-        # Necessary to log the phone number instead of the userId
-        if contact in usernamesPhoneDictionary:
-            readableContactIdentifier = usernamesPhoneDictionary[contact]
-            
-        file.write("\n -------------------- START " + str(readableContactIdentifier) + " -------------------- \n")
-        for msgLog in getChatLogs(api_id, api_hash, contact, num_of_messages_to_retrieve):
-            file.write(msgLog + "\n")
-        file.write(" -------------------- END  " + str(readableContactIdentifier) + " -------------------- \n")
+    target_name = input("Enter a target first name: ")
+    name = get_contact(api_id, api_hash, target_name)
+
+    if(len(name) == 0):
+        print("No contacts found!")
+        sys.exit()
+
+    key = 1
+    if len(name) > 1:
+        print("There are multiple contacts. which one do you want to choose?")
+        for key in name:
+            print(str(key) + " " + name[key])
+
+        key = int(input("Select number please: "))
+
+        if(key < 0 or key > len(name)):
+            print("C'mon duuuude!!!")
+            sys.exit()
+
+    # Split for username
+    # Eg: First_Name Last_Name Username <--- take username at the end
+    username = name[key].split(" ")[-1]
+    print(username) 
+
+
+if __name__ == "__main__":
+
+    # Load api_hash and api_id from JSON file
+    api_id, api_hash = load_configuration()
+
+    num_of_messages_to_retrieve = 5
+    path_to_log_file = '.\\log.txt'
+
+    # To maintain a correspondence between userIds and phoneNumbers
+    usernamesPhoneDictionary = dict()
+    # Retrieve all contacts' name
+    contactNames = getContactNames(api_id, api_hash, usernamesPhoneDictionary)
+    print(contactNames)
+
+    # Create logs file
+    with open(path_to_log_file, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
+        for contact in contactNames:
+            readableContactIdentifier = contact
+            # Necessary to log the phone number instead of the userId
+            if contact in usernamesPhoneDictionary:
+                readableContactIdentifier = usernamesPhoneDictionary[contact]
+                
+            file.write("\n -------------------- START " + str(readableContactIdentifier) + " -------------------- \n")
+            for msgLog in getChatLogs(api_id, api_hash, contact, num_of_messages_to_retrieve):
+                file.write(msgLog + "\n")
+            file.write(" -------------------- END  " + str(readableContactIdentifier) + " -------------------- \n")
