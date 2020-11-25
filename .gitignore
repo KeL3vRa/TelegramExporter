@@ -128,5 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# vscode
+.vscode
+
 #Telegram session file
 my_account.session
