@@ -53,17 +53,17 @@ def getContactNames(api_id, api_hash, idPhoneDictionary):
 
 
 # Get the last N messages of a chat
-def getChatLogs(api_id, api_hash, username, n_messages):
+def getChatLogs(api_id, api_hash, username):
     
     formattedLog = list()
     
     with Client("my_account", api_id, api_hash) as app:
-        #TODO: substitute with iter_history()
-        chat = app.get_history(username, limit=n_messages)
+        # Create a list with ALL messages exhanged with username
+        chat = list()
+        for message in app.iter_history(username):
+            chat.append(message)
+        # Iterate over the previously created list
         for msg in chat:
-            #print("SENDER:{:20}".format(msg.from_user.username))
-            #print("DATE:{:19}".format(datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S')))
-            #print("MESSAGE:{}".format(str(msg.text)))
             if not msg.text is None:
                 formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), msg.text))
             elif not msg.audio is None:
@@ -178,7 +178,6 @@ if __name__ == "__main__":
     # Load api_hash and api_id from JSON file
     api_id, api_hash = load_configuration()
 
-    num_of_messages_to_retrieve = 5
     path_to_log_file = '.\\log.txt'
 
     # To maintain a correspondence between userIds and phoneNumbers
@@ -196,6 +195,6 @@ if __name__ == "__main__":
                 readableContactIdentifier = usernamesPhoneDictionary[contact]
                 
             file.write("\n -------------------- START " + str(readableContactIdentifier) + " -------------------- \n")
-            for msgLog in getChatLogs(api_id, api_hash, contact, num_of_messages_to_retrieve):
+            for msgLog in getChatLogs(api_id, api_hash, contact):
                 file.write(msgLog + "\n")
             file.write(" -------------------- END  " + str(readableContactIdentifier) + " -------------------- \n")
