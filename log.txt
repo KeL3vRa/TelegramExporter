@@ -1,0 +1,10 @@
+
+ -------------------- START cccc -------------------- 
+ -------------------- END  cccc -------------------- 
+
+ -------------------- START xxxxx -------------------- 
+SENDER:me                      	DATE:2020-04-02 15:48:10     MESSAGE:Voice message
+SENDER:xxxxx                 	DATE:2020-04-02 15:47:48     MESSAGE:Mi dispiace :(
+SENDER:me                      	DATE:2020-04-02 15:47:06     MESSAGE:Okok, grazie
+SENDER:xxxxx                 	DATE:2020-04-02 15:42:47     MESSAGE:Voice message
+ -------------------- END  xxxxx -------------------- 
