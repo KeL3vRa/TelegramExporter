@@ -5,6 +5,9 @@ import time
 import json
 import sys
 
+_FORMAT_LOG_STRING = "SENDER:{:20}        DATE:{:19}     MESSAGE:{}"
+_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+
 
 def get_contact(api_id, api_hash, filtered_name):
 
@@ -64,46 +67,50 @@ def getChatLogs(api_id, api_hash, username):
             chat.append(message)
         # Iterate over the previously created list
         for msg in chat:
+
+            _sender_username = str(msg.from_user.username)
+            _formatted_message_date = datetime.utcfromtimestamp(msg.date).strftime(_TIME_FORMAT)
+
             if not msg.text is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), msg.text))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, msg.text))
             elif not msg.audio is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Audio message"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Audio message"))
             elif not msg.document is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Document"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Document"))
             elif not msg.photo is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Photo"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Photo"))
             elif not msg.sticker is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Sticker"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Sticker"))
             elif not msg.animation is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Animation"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Animation"))
             elif not msg.game is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Game"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Game"))
             elif not msg.video is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Video"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Video"))
             elif not msg.voice is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Voice message"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Voice message"))
             elif not msg.video_note is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Video note"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Video note"))
             elif not msg.contact is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Contact"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Contact"))
             elif not msg.location is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Location"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Location"))
             elif not msg.venue is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Venue"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Venue"))
             elif not msg.web_page is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Web page"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Web page"))
             elif not msg.poll is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Poll"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Poll"))
             elif not msg.dice is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Dice"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Dice"))
             elif not msg.service is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Telegram service message"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Telegram service message"))
             elif not msg.empty is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Message was deleted"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Message was deleted"))
             elif not msg.caption is None:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(msg.from_user.username, datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Caption"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Caption"))
             else:
-                formattedLog.append("SENDER:{:20}        DATE:{:19}     MESSAGE:{}".format(str(msg.from_user.username), datetime.utcfromtimestamp(msg.date).strftime('%Y-%m-%d %H:%M:%S'), "Not possible to find the type of message"))
+                formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Not possible to find the type of message"))
         return formattedLog
 
 
