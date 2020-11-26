@@ -20,7 +20,7 @@ def get_contact(client, target_name=""):
         if dialog.chat.type == 'private':
             user = client.get_users(dialog.chat.id)
             #if user still exists and the user has specified a name to search or if he wants all users
-            if (not user["is_deleted"]) and ((target_name != "" and user["first_name"].lower() == target_name) or (target_name == "")):
+            if (not user["is_deleted"]) and ((target_name.lower() != "" and user["first_name"].lower() == target_name.lower()) or (target_name == "")):
                 count += 1
 
                 # create a dictionary with most important user infos and add to a global dictionary of users
@@ -127,7 +127,7 @@ def getChatLogsOfUser(client, useridentifier):
                     formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Not possible to find the type of message"))
             return formattedLog
         
-        except FloodWait as exception:
+        except FloodWait:
             print("[getChatLogsOfUser] FloodWait exception may be fired by Telegram. Waiting 29s")
             time.sleep(29) #this value is specifically provided by Telegram, relating to the particular API calling which caused the exception
 
@@ -140,7 +140,7 @@ def getChatIdFromPhoneNumber(client, phoneNumber):
             chat_details = client.get_chat(phoneNumber)
             return chat_details.id
         
-        except FloodWait as exception:
+        except FloodWait:
             print("[getIdFromNumber] FloodWait exception may be fired by Telegram. Waiting 28s")
             time.sleep(28) #this value is specifically provided by Telegram, relating to the particular API calling which caused the exception
 
@@ -158,11 +158,11 @@ def menu_get_contact(client):
     if len(name) > 1:
         print("There are multiple contacts. which one do you want to choose?")
         for key in name:
-            print(str(key) + " " + name[key]['first_name'] + " " + name[key]['last_name']+ " with phone number: " + name[key]['phone_number'])
+            print(str(key) + " " + name[key]['first_name'] + " " + name[key]['last_name'] + " with phone number: " + name[key]['phone_number'])
 
         key = int(input("Select number please: "))
 
-        if(key < 0 or key > len(name)):
+        if(key <= 0 or key > len(name)):
             print("C'mon duuuude!!!")
             sys.exit()
 
