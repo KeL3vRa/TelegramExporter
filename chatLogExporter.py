@@ -200,8 +200,8 @@ def getContactsData(client, path_identifiers_phone_numbers_file, path_identifier
         json.dump(contactNames, file)
         file.close()
         print("[getContactsData] contacts' names list dumped")
-    else :    
-        # Loads usernamesPhoneDictionary dict
+    else :
+                # Loads usernamesPhoneDictionary dict
         dump_file = open(path_identifiers_phone_numbers_file, "r")
         usernamesPhoneDictionary = json.load(dump_file)
         dump_file.close()
@@ -215,6 +215,16 @@ def getContactsData(client, path_identifiers_phone_numbers_file, path_identifier
     return usernamesPhoneDictionary, contactNames
 
 
+def get_dialogs(client):
+
+    username = []
+
+    for dialog in client.iter_dialogs():
+        username.append(dialog.chat.username)
+
+    print(username)
+
+
 if __name__ == "__main__":
 
     # Load configuration values
@@ -223,6 +233,8 @@ if __name__ == "__main__":
 
     # Create an istance of the pyrogram client
     with Client("my_account") as client:
+
+        get_dialogs(client) # Get dialogs chats
         
         # Gets the list of contacts saved into user's book
         usernamesPhoneDictionary, contactNames = getContactsData(client, path_identifiers_phone_numbers_file, path_identifiers_list_file)
