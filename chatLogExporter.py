@@ -41,7 +41,7 @@ def generateContactsNames(client):
             contactsUsernames.append(contact.username)
         elif not contact.phone_number is None:
             print("\n[generateContactsNames] Username not found for phone number {}".format(contact.phone_number))
-            correspondantId = getIdFromPhoneNumber(client, contact.phone_number)
+            correspondantId = getChatIdFromPhoneNumber(client, contact.phone_number)
             # Identify the full name of the person who owns the phone number
             formattedName = contact.first_name
             if not contact.last_name is None:
@@ -59,16 +59,16 @@ def generateContactsNames(client):
     return contactsUsernames, tgIdPhoneDictionary
 
 
-# Get the last N messages of a chat
-def getChatLogsOfUser(client, username):
+# Get the all messages in the chat with a given user
+def getChatLogsOfUser(client, useridentifier):
     
     while True:
         try:
             formattedLog = list()
     
-            # Create a list with ALL messages exhanged with username
+            # Create a list with ALL messages exhanged with useridentifier
             chat = list()
-            for message in client.iter_history(username):
+            for message in client.iter_history(useridentifier):
                 chat.append(message)
             # Iterate over the previously created list
             for msg in chat:
@@ -126,7 +126,7 @@ def getChatLogsOfUser(client, username):
             time.sleep(29) #this value is specifically provided by Telegram, relating to the particular API calling which caused the exception
 
 
-def getIdFromPhoneNumber(client, phoneNumber):
+def getChatIdFromPhoneNumber(client, phoneNumber):
     
     while True:
         # Gets the details of a chat
@@ -166,7 +166,7 @@ def menu_get_contact(client):
     print(username) 
 
 
-def load_configuration(configFileName):
+def load_app_configuration(configFileName):
 
     config_file = open(configFileName,"r")
     config_keys = json.load(config_file)
@@ -189,7 +189,7 @@ def getContactsData(client, path_identifiers_phone_numbers_file, path_identifier
         file = open(path_identifiers_phone_numbers_file,"w")
         json.dump(tgIdPhoneDictionary, file)
         file.close()
-        print("[getContactsData] corresponance identifier_phoneNumber dumped")
+        print("[getContactsData] correspondance identifier_phoneNumber dumped")
         # Dumps identifiers list
         file = open(path_identifiers_list_file,"w")
         json.dump(contactNames, file)
@@ -226,7 +226,7 @@ def getChatIdsByDialogs(client):
             formattedName = dialog.chat.first_name
             if not dialog.chat.last_name is None:
                 formattedName = formattedName + " " + formattedName
-            chatIdNameDict[dialog.chat.id] = dialog.chat.title
+            chatIdNameDict[dialog.chat.id] = dialog.chat.first_name
             print("\n[generateContactsNames] Username not found for the chat with {}".format(formattedName))
         else:
             print("\n[generateContactsNames] No info found for chat {}; it means the other user deleted his account".format(dialog.chat.id))
@@ -278,7 +278,7 @@ if __name__ == "__main__":
 
     # Load configuration values
     config_file_name = "app_config.json"
-    all_contacts_chat_logs_file_path, path_identifiers_phone_numbers_file, path_identifiers_list_file = load_configuration(config_file_name)
+    all_contacts_chat_logs_file_path, path_identifiers_phone_numbers_file, path_identifiers_list_file = load_app_configuration(config_file_name)
 
     # Create an istance of the pyrogram client
     with Client("my_account") as client:
