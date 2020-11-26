@@ -20,7 +20,7 @@ def get_contact(client, target_name=""):
         if dialog.chat.type == 'private':
             user = client.get_users(dialog.chat.id)
             #if user still exists and the user has specified a name to search or if he wants all users
-            if (not user["is_deleted"]) and ((target_name.lower() != "" and user["first_name"].lower() == target_name.lower()) or (target_name == "")):
+            if (not user["is_deleted"]) and ((target_name.lower() != "" and user["first_name"].lower() == target_name.lower()) or (target_name.lower() == "")):
                 count += 1
 
                 # create a dictionary with most important user infos and add to a global dictionary of users
