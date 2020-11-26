@@ -256,7 +256,7 @@ def writeAllChatsLogsFile(client, all_contacts_chat_logs_file_path, chatIdNameDi
                 file.write("\n -------------------- END  " + str(chatId) + " -------------------- \n")
 
 
-def writeAllContactsChatsLogsFile(client, all_contacts_chat_logs_file_path, contactNames, tgIdDictionary):
+def writeAllContactsChatsLogsFile(client, all_contacts_chat_logs_file_path, contactNames, tgIdPhoneDictionary):
 
     # Create logs file for every contact on the phone
         with open(all_contacts_chat_logs_file_path, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
