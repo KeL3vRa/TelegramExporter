@@ -10,7 +10,7 @@ _FORMAT_LOG_STRING = "SENDER:{:20}        DATE:{:19}     MESSAGE:{}"
 _TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
-def get_contact(client, api_id, api_hash, filtered_name):
+def get_contact(client, filtered_name):
 
     contacts = client.get_contacts()
     saved_contact = {}
@@ -30,7 +30,7 @@ def get_contact(client, api_id, api_hash, filtered_name):
     return saved_contact
 
 
-def getContactNames(client, api_id, api_hash):
+def getContactNames(client):
     
     contactsUsernames = list()
     idPhoneDictionary = dict()
@@ -41,7 +41,7 @@ def getContactNames(client, api_id, api_hash):
             contactsUsernames.append(contact.username)
         elif not contact.phone_number is None:
             print("\n[getContactNames] Username not found for phone number {}".format(contact.phone_number))
-            correspondantId = getIdFromNumber(client, api_id, api_hash, contact.phone_number)
+            correspondantId = getIdFromNumber(client, contact.phone_number)
             # Identify the full name of the person who owns the phone number
             formattedName = contact.first_name
             if not contact.last_name is None:
@@ -60,7 +60,7 @@ def getContactNames(client, api_id, api_hash):
 
 
 # Get the last N messages of a chat
-def getChatLogsOfUser(client, api_id, api_hash, username):
+def getChatLogsOfUser(client, username):
     
     while True:
         try:
@@ -123,7 +123,7 @@ def getChatLogsOfUser(client, api_id, api_hash, username):
             time.sleep(29) #this value is specifically provided by Telegram, relating to the particular API calling which caused the exception
 
 
-def getChatDetails(client, api_id, api_hash, username):
+def getChatDetails(client, username):
     
     # Gets the details of a chat
     chat_details = client.get_chat(username)
@@ -131,7 +131,7 @@ def getChatDetails(client, api_id, api_hash, username):
     return chat_details
 
 
-def getIdFromNumber(client, api_id, api_hash, phoneNumber):
+def getIdFromNumber(client, phoneNumber):
     
     while True:
         # Gets the details of a chat
@@ -147,7 +147,7 @@ def getIdFromNumber(client, api_id, api_hash, phoneNumber):
 def menu_get_contact(client):
 
     target_name = input("Enter a target first name: ")
-    name = get_contact(client, api_id, api_hash, target_name)
+    name = get_contact(client, target_name)
 
     if(len(name) == 0):
         print("No contacts found!")
@@ -186,18 +186,18 @@ def load_configuration():
 if __name__ == "__main__":
 
     # Set dummy values for api_id and api_hash
-    api_id, api_hash = load_configuration()
+    #api_id, api_hash = load_configuration()
 
     path_to_log_file = '.\\chat_logs.txt'
     path_to_usernames_phone_dict = '.\\usernamesPhones.json'
     path_to_identifiers_list = '.\\usernames.json'
 
-    with Client("my_account", api_id=api_id, api_hash=api_hash) as client:
+    with Client("my_account") as client:
         
         # Generates contacts list only first time
         if not path.exists(path_to_usernames_phone_dict):
             # Retrieve all contacts' names and the corresponance identifier_phoneNumber
-            contactNames, usernamesPhoneDictionary = getContactNames(client, api_id, api_hash)
+            contactNames, usernamesPhoneDictionary = getContactNames(client)
             # Dumps usernamesPhoneDictionary dict
             file = open(path_to_usernames_phone_dict,"w")
             json.dump(usernamesPhoneDictionary, file)
@@ -230,6 +230,6 @@ if __name__ == "__main__":
                 print("[Main] Processing " + stringContact + " contact")
                 
                 file.write("\n -------------------- START " + stringContact + " -------------------- \n")
-                for msgLog in getChatLogsOfUser(client, api_id, api_hash, contact):
+                for msgLog in getChatLogsOfUser(client, contact):
                     file.write(msgLog + "\n")
                 file.write(" -------------------- END  " + stringContact + " -------------------- \n")
