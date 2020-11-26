@@ -174,14 +174,14 @@ def menu_get_contact(client):
 if __name__ == "__main__":
 
     # Set dummy values for api_id and api_hash
-    api_id_dummy = 12345
-    api_hash_dummy = "0123456789abcdef0123456789abcdef"
+    api_id = 12345
+    api_hash = "0123456789abcdef0123456789abcdef"
 
     path_to_log_file = '.\\chat_logs.txt'
     path_to_usernames_phone_dict = '.\\usernamesPhones.json'
     path_to_identifiers_list = '.\\usernames.json'
 
-    with Client("my_account", api_id=api_id_dummy, api_hash=api_hash_dummy) as client:
+    with Client("my_account", api_id=api_id, api_hash=api_hash) as client:
         
         # Generates contacts list only first time
         if not path.exists(path_to_usernames_phone_dict):
