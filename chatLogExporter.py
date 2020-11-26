@@ -183,6 +183,16 @@ def load_configuration():
     return api_id, api_hash
 
 
+def get_dialogs(client):
+
+    username = []
+
+    for dialog in client.iter_dialogs():
+        username.append(dialog.chat.username)
+
+    print(username)
+
+
 if __name__ == "__main__":
 
     # Set dummy values for api_id and api_hash
@@ -194,6 +204,8 @@ if __name__ == "__main__":
 
     with Client("my_account") as client:
         
+        get_dialogs(client) # Get dialogs chats
+
         # Generates contacts list only first time
         if not path.exists(path_to_usernames_phone_dict):
             # Retrieve all contacts' names and the corresponance identifier_phoneNumber
