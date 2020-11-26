@@ -136,7 +136,5 @@ my_account.session
 credential.json
 
 # Created log file
-chat_logs.txt
-log_full.txt
-usernames.json
-usernamesPhones.json
+*.txt
+*.json

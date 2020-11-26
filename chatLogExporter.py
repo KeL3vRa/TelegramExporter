@@ -171,16 +171,17 @@ def menu_get_contact(client):
     print(username) 
 
 
-def load_configuration():
+def load_configuration(configFileName):
 
-    api_id = ""
-    api_hash = ""
+    config_file = open(configFileName,"r")
+    config_keys = json.load(config_file)
+    config_file.close()
 
-    with open("credential.json") as json_file:
-        api_id = json_file["api_id"]
-        api_hash = json_file["api_hash"]
+    all_contacts_chat_logs_file_path = config_keys["all_contacts_chat_logs_file_path"]
+    identifiers_phone_numbers_dump_file = config_keys["identifiers_phone_numbers_dump_path"]
+    identifiers_list_dump_file = config_keys["identifiers_list_dump_path"]
     
-    return api_id, api_hash
+    return all_contacts_chat_logs_file_path, identifiers_phone_numbers_dump_file, identifiers_list_dump_file
 
 
 def get_dialogs(client):
@@ -195,45 +196,43 @@ def get_dialogs(client):
 
 if __name__ == "__main__":
 
-    # Set dummy values for api_id and api_hash
-    #api_id, api_hash = load_configuration()
+    config_file_name = "app_config.json"
+    all_contacts_chat_logs_file_path, path_identifiers_phone_numbers_file, path_identifiers_list_file = load_configuration(config_file_name)
 
-    path_to_log_file = '.\\chat_logs.txt'
-    path_to_usernames_phone_dict = '.\\usernamesPhones.json'
-    path_to_identifiers_list = '.\\usernames.json'
+    
 
     with Client("my_account") as client:
         
         get_dialogs(client) # Get dialogs chats
 
         # Generates contacts list only first time
-        if not path.exists(path_to_usernames_phone_dict):
+        if not path.exists(path_identifiers_phone_numbers_file):
             # Retrieve all contacts' names and the corresponance identifier_phoneNumber
             contactNames, usernamesPhoneDictionary = getContactNames(client)
             # Dumps usernamesPhoneDictionary dict
-            file = open(path_to_usernames_phone_dict,"w")
+            file = open(path_identifiers_phone_numbers_file,"w")
             json.dump(usernamesPhoneDictionary, file)
             file.close()
             print("[Main] corresponance identifier_phoneNumber dumped")
             # Dumps identifiers list
-            file = open(path_to_identifiers_list,"w")
+            file = open(path_identifiers_list_file,"w")
             json.dump(contactNames, file)
             file.close()
             print("[Main] contacts' names list dumped")
         
         # Loads usernamesPhoneDictionary dict
-        dump_file = open(path_to_usernames_phone_dict, "r")
+        dump_file = open(path_identifiers_phone_numbers_file, "r")
         usernamesPhoneDictionary = json.load(dump_file)
         dump_file.close()
         print("[Main] corresponance identifier_phoneNumber loaded")
         # Loads identifiers dict
-        dump_file = open(path_to_identifiers_list, "r")
+        dump_file = open(path_identifiers_list_file, "r")
         contactNames = json.load(dump_file)
         dump_file.close()
         print("[Main] contacts' names list loaded")
 
-        # Create logs file
-        with open(path_to_log_file, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
+        # Create logs file for every contact on the phone
+        with open(all_contacts_chat_logs_file_path, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
             for contact in contactNames:
                 stringContact = str(contact)
                 # Necessary to log the book name instead of the userId
