@@ -10,25 +10,31 @@ _FORMAT_LOG_STRING = "SENDER:{:20}        DATE:{:19}     MESSAGE:{}"
 _TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
-def get_contact(client, filtered_name):
+def get_contact(client, target_name=""):
 
-    contacts = client.get_contacts()
     saved_contact = {}
     count = 0
 
-    for contact in contacts:
-        first_name = contact["first_name"] # from a JSON get only first name
-        last_name = contact["last_name"]
+    #iterate over private chats
+    for dialog in client.iter_dialogs():
+        if dialog.chat.type == 'private':
+            user = client.get_users(dialog.chat.id)
+            #if user still exists and the user has specified a name to search or if he wants all users
+            if (not user["is_deleted"]) and ((target_name != "" and user["first_name"].lower() == target_name) or (target_name == "")):
+                count += 1
 
-        if(filtered_name.lower() in first_name.lower()): # get a specific first name from a list of contacts
-            count += 1
-            if last_name is None:
-                saved_contact[count] = first_name + " " + contact["username"]
-            else:
-                saved_contact[count] = first_name + " " + last_name + " " + contact["username"]
+                # create a dictionary with most important user infos and add to a global dictionary of users
+                contact_details = {}
+                contact_details["username"] = '' if user["username"] is None else str(user["username"])
+                contact_details["first_name"] = user["first_name"]
+                contact_details["last_name"] = '' if user["last_name"] is None else str(user["last_name"])
+                contact_details["userId"] = user["id"]
+                contact_details["phone_number"] = user["phone_number"]
+
+                #add the dictionary to a global variable
+                saved_contact[count] = contact_details
 
     return saved_contact
-
 
 def generateContactsNames(client):
     
@@ -152,7 +158,7 @@ def menu_get_contact(client):
     if len(name) > 1:
         print("There are multiple contacts. which one do you want to choose?")
         for key in name:
-            print(str(key) + " " + name[key])
+            print(str(key) + " " + name[key]['first_name'] + " " + name[key]['last_name']+ " with phone number: " + name[key]['phone_number'])
 
         key = int(input("Select number please: "))
 
@@ -160,10 +166,8 @@ def menu_get_contact(client):
             print("C'mon duuuude!!!")
             sys.exit()
 
-    # Split for username
-    # Eg: First_Name Last_Name Username <--- take username at the end
-    username = name[key].split(" ")[-1]
-    print(username) 
+    user = name[key]
+    print(user)
 
 
 def load_app_configuration(configFileName):
