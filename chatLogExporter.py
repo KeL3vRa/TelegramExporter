@@ -41,7 +41,7 @@ def generateContactsNames(client):
             contactsUsernames.append(contact.username)
         elif not contact.phone_number is None:
             print("\n[generateContactsNames] Username not found for phone number {}".format(contact.phone_number))
-            correspondantId = getIdFromNumber(client, contact.phone_number)
+            correspondantId = getIdFromPhoneNumber(client, contact.phone_number)
             # Identify the full name of the person who owns the phone number
             formattedName = contact.first_name
             if not contact.last_name is None:
@@ -73,7 +73,10 @@ def getChatLogsOfUser(client, username):
             # Iterate over the previously created list
             for msg in chat:
 
-                _sender_username = str(msg.from_user.username)
+                if not msg.from_user is None:
+                    _sender_username = str(msg.from_user.username)
+                else :
+                    _sender_username = "Channel message"
                 _formatted_message_date = datetime.utcfromtimestamp(msg.date).strftime(_TIME_FORMAT)
 
                 if not msg.text is None:
@@ -123,15 +126,7 @@ def getChatLogsOfUser(client, username):
             time.sleep(29) #this value is specifically provided by Telegram, relating to the particular API calling which caused the exception
 
 
-def getChatDetails(client, username):
-    
-    # Gets the details of a chat
-    chat_details = client.get_chat(username)
-        
-    return chat_details
-
-
-def getIdFromNumber(client, phoneNumber):
+def getIdFromPhoneNumber(client, phoneNumber):
     
     while True:
         # Gets the details of a chat
@@ -215,17 +210,53 @@ def getContactsData(client, path_identifiers_phone_numbers_file, path_identifier
     return tgIdPhoneDictionary, contactNames
 
 
-def get_dialogs(client):
+def getChatIdsByDialogs(client):
 
-    username = []
+    chatIdNameDict = dict()
+    deletedChatdIds = list()
 
     for dialog in client.iter_dialogs():
-        username.append(dialog.chat.username)
+        if not dialog.chat.username is None:
+            chatIdNameDict[dialog.chat.id] = dialog.chat.username
+        elif not dialog.chat.title is None:
+            chatIdNameDict[dialog.chat.id] = dialog.chat.title
+            print("\n[generateContactsNames] Username not found for the chat with title {}".format(dialog.chat.title))
+        elif not dialog.chat.first_name is None:
+            # Identify the full name of the person who the chat relates to
+            formattedName = dialog.chat.first_name
+            if not dialog.chat.last_name is None:
+                formattedName = formattedName + " " + formattedName
+            chatIdNameDict[dialog.chat.id] = dialog.chat.title
+            print("\n[generateContactsNames] Username not found for the chat with {}".format(formattedName))
+        else:
+            print("\n[generateContactsNames] No info found for chat {}; it means the other user deleted his account".format(dialog.chat.id))
+            deletedChatdIds.append(dialog.chat.id)
 
-    print(username)
+    return chatIdNameDict, deletedChatdIds
 
 
-def writeAllChatsLogsFile(client, all_contacts_chat_logs_file_path, contactNames, tgIdDictionary):
+def writeAllChatsLogsFile(client, all_contacts_chat_logs_file_path, chatIdNameDict, deletedChatdIds):
+
+    # Create logs file for every contact on the phone
+        with open(all_contacts_chat_logs_file_path, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
+            # Logs about existing chats
+            for chatId in chatIdNameDict.keys():
+                print("[writeAllChatsLogsFile] Processing " + chatIdNameDict[chatId] + " contact")
+                file.write("\n -------------------- START " + chatIdNameDict[chatId] + " -------------------- \n")
+                for msgLog in getChatLogsOfUser(client, chatId):
+                    file.write("\n" + msgLog)
+                file.write("\n -------------------- END  " + chatIdNameDict[chatId] + " -------------------- \n")
+            # Logs about deleted chats
+            for chatId in deletedChatdIds:
+                file.write("\n\n ///////////////////  DELETED CHATS \\\\\\\\\\\\\\\\\\\\ \n\n")
+                print("[writeAllChatsLogsFile] Processing " + str(chatId) + " contact")
+                file.write("\n -------------------- START " + str(chatId) + " -------------------- \n")
+                for msgLog in getChatLogsOfUser(client, chatId):
+                    file.write("\n" + msgLog)
+                file.write("\n -------------------- END  " + str(chatId) + " -------------------- \n")
+
+
+def writeAllContactsChatsLogsFile(client, all_contacts_chat_logs_file_path, contactNames, tgIdDictionary):
 
     # Create logs file for every contact on the phone
         with open(all_contacts_chat_logs_file_path, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
@@ -234,7 +265,7 @@ def writeAllChatsLogsFile(client, all_contacts_chat_logs_file_path, contactNames
                 # Necessary to log the book name instead of the userId
                 if stringContact in tgIdPhoneDictionary:
                     stringContact = tgIdPhoneDictionary[stringContact]
-                print("[writeAllChatsLogsFile] Processing " + stringContact + " contact")
+                print("[writeAllContactsChatsLogsFile] Processing " + stringContact + " contact")
                 
                 file.write("\n -------------------- START " + stringContact + " -------------------- \n")
                 for msgLog in getChatLogsOfUser(client, contact):
@@ -252,10 +283,12 @@ if __name__ == "__main__":
     # Create an istance of the pyrogram client
     with Client("my_account") as client:
 
-        get_dialogs(client) # Get dialogs chats
+        # Get chats details by dialogs
+        chatIdNameDict, deletedChatdIds = getChatIdsByDialogs(client) 
+        writeAllChatsLogsFile(client, all_contacts_chat_logs_file_path, chatIdNameDict, deletedChatdIds)
         
         # Gets the list of contacts saved into user's book
-        tgIdPhoneDictionary, contactNames = getContactsData(client, path_identifiers_phone_numbers_file, path_identifiers_list_file)
+        #tgIdPhoneDictionary, contactNames = getContactsData(client, path_identifiers_phone_numbers_file, path_identifiers_list_file)
         
         # Create the log file with all chats fro every user
-        writeAllChatsLogsFile(client, all_contacts_chat_logs_file_path, contactNames, tgIdPhoneDictionary)
+        #writeAllContactsChatsLogsFile(client, all_contacts_chat_logs_file_path, contactNames, tgIdPhoneDictionary)
