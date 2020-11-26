@@ -232,6 +232,7 @@ def getChatIdsByDialogs(client):
 
     for dialog in client.iter_dialogs():
         if not dialog.chat.username is None:
+            #TO AVOID CHANNELS COMMENT NEXT LINE ADD if dialog.chat.title is None:
             chatIdsList.append(dialog.chat.id)
             chatIdUsernamesDict[dialog.chat.id] = dialog.chat.username
             # Tries to get the person phone number retrieving his id
@@ -244,17 +245,19 @@ def getChatIdsByDialogs(client):
             print("\n[getChatIdsByDialogs] Retrieved chat with username: {}".format(dialog.chat.username))
         
         if not dialog.chat.title is None:
+            #TO AVOID CHANNELS COMMENT NEXT LINE
             chatIdsList.append(dialog.chat.id)
             chatIdChannelTitleDict[dialog.chat.id] = dialog.chat.title
             print("\n[getChatIdsByDialogs] Retrieved chat with title: {}".format(dialog.chat.title))
 
         if not dialog.chat.first_name is None:
-            chatIdsList.append(dialog.chat.id)
+            if not dialog.chat.id in chatIdsList:
+                chatIdsList.append(dialog.chat.id)
             # Identify the full name of the person who the chat relates to
             formattedName = dialog.chat.first_name
             if not dialog.chat.last_name is None:
-                formattedName = formattedName + " " + formattedName
-            chatIdFullNameDict[dialog.chat.id] = dialog.chat.first_name
+                formattedName = formattedName + " " + dialog.chat.last_name
+            chatIdFullNameDict[dialog.chat.id] = formattedName
             # Tries to get the person phone number retrieving his id
             ids = list()
             ids.append(dialog.chat.id)
