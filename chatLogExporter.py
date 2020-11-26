@@ -184,40 +184,48 @@ def load_configuration(configFileName):
     return all_contacts_chat_logs_file_path, identifiers_phone_numbers_dump_file, identifiers_list_dump_file
 
 
-if __name__ == "__main__":
+def getContactsData(client, path_identifiers_phone_numbers_file, path_identifiers_list_file):
 
-    config_file_name = "app_config.json"
-    all_contacts_chat_logs_file_path, path_identifiers_phone_numbers_file, path_identifiers_list_file = load_configuration(config_file_name)
-
-    
-
-    with Client("my_account") as client:
-        
-        # Generates contacts list only first time
-        if not path.exists(path_identifiers_phone_numbers_file):
-            # Retrieve all contacts' names and the corresponance identifier_phoneNumber
-            contactNames, usernamesPhoneDictionary = getContactNames(client)
-            # Dumps usernamesPhoneDictionary dict
-            file = open(path_identifiers_phone_numbers_file,"w")
-            json.dump(usernamesPhoneDictionary, file)
-            file.close()
-            print("[Main] corresponance identifier_phoneNumber dumped")
-            # Dumps identifiers list
-            file = open(path_identifiers_list_file,"w")
-            json.dump(contactNames, file)
-            file.close()
-            print("[Main] contacts' names list dumped")
-        
+    # Generates contacts list only the first execution
+    if not path.exists(path_identifiers_list_file) or not path.exists(path_identifiers_phone_numbers_file):
+        # Retrieve all contacts' names and the corresponance identifier_phoneNumber
+        contactNames, usernamesPhoneDictionary = getContactNames(client)
+        # Dumps usernamesPhoneDictionary dict
+        file = open(path_identifiers_phone_numbers_file,"w")
+        json.dump(usernamesPhoneDictionary, file)
+        file.close()
+        print("[getContactsData] corresponance identifier_phoneNumber dumped")
+        # Dumps identifiers list
+        file = open(path_identifiers_list_file,"w")
+        json.dump(contactNames, file)
+        file.close()
+        print("[getContactsData] contacts' names list dumped")
+    else :    
         # Loads usernamesPhoneDictionary dict
         dump_file = open(path_identifiers_phone_numbers_file, "r")
         usernamesPhoneDictionary = json.load(dump_file)
         dump_file.close()
-        print("[Main] corresponance identifier_phoneNumber loaded")
+        print("[getContactsData] corresponance identifier_phoneNumber loaded")
         # Loads identifiers dict
         dump_file = open(path_identifiers_list_file, "r")
         contactNames = json.load(dump_file)
         dump_file.close()
-        print("[Main] contacts' names list loaded")
+        print("[getContactsData] contacts' names list loaded")
+
+    return usernamesPhoneDictionary, contactNames
+
+
+if __name__ == "__main__":
+
+    # Load configuration values
+    config_file_name = "app_config.json"
+    all_contacts_chat_logs_file_path, path_identifiers_phone_numbers_file, path_identifiers_list_file = load_configuration(config_file_name)
+
+    # Create an istance of the pyrogram client
+    with Client("my_account") as client:
+        
+        # Gets the list of contacts saved into user's book
+        usernamesPhoneDictionary, contactNames = getContactsData(client, path_identifiers_phone_numbers_file, path_identifiers_list_file)
 
         # Create logs file for every contact on the phone
         with open(all_contacts_chat_logs_file_path, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
