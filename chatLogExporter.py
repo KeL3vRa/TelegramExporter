@@ -171,11 +171,22 @@ def menu_get_contact(client):
     print(username) 
 
 
+def load_configuration():
+
+    api_id = ""
+    api_hash = ""
+
+    with open("credential.json") as json_file:
+        api_id = json_file["api_id"]
+        api_hash = json_file["api_hash"]
+    
+    return api_id, api_hash
+
+
 if __name__ == "__main__":
 
     # Set dummy values for api_id and api_hash
-    api_id = 12345
-    api_hash = "0123456789abcdef0123456789abcdef"
+    api_id, api_hash = load_configuration()
 
     path_to_log_file = '.\\chat_logs.txt'
     path_to_usernames_phone_dict = '.\\usernamesPhones.json'
