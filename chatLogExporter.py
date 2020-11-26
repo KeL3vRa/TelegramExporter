@@ -144,19 +144,6 @@ def getIdFromNumber(client, api_id, api_hash, phoneNumber):
             time.sleep(28) #this value is specifically provided by Telegram, relating to the particular API calling which caused the exception
 
 
-def load_configuration():
-
-    api_id = ""
-    api_hash = ""
-
-    with open("credential.json") as json_file:
-        data = json.load(json_file)
-        api_id = data["api_id"]
-        api_hash = data["api_hash"]
-    
-    return api_id, api_hash
-
-
 def menu_get_contact(client):
 
     target_name = input("Enter a target first name: ")
@@ -186,14 +173,15 @@ def menu_get_contact(client):
 
 if __name__ == "__main__":
 
-    # Load api_hash and api_id from JSON file
-    api_id, api_hash = load_configuration()
+    # Set dummy values for api_id and api_hash
+    api_id_dummy = 12345
+    api_hash_dummy = "0123456789abcdef0123456789abcdef"
 
     path_to_log_file = '.\\chat_logs.txt'
     path_to_usernames_phone_dict = '.\\usernamesPhones.json'
     path_to_identifiers_list = '.\\usernames.json'
 
-    with Client("my_account", api_id, api_hash) as client:
+    with Client("my_account", api_id=api_id_dummy, api_hash=api_hash_dummy) as client:
         
         # Generates contacts list only first time
         if not path.exists(path_to_usernames_phone_dict):
