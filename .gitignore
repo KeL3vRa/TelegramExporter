@@ -131,6 +131,9 @@ dmypy.json
 # vscode
 .vscode
 
+#pycharm
+.idea
+
 #Telegram session file
 my_account.session
 credential.json

@@ -10,25 +10,37 @@ _FORMAT_LOG_STRING = "SENDER:{:20}        DATE:{:19}     MESSAGE:{}"
 _TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
-def get_contact(client, filtered_name):
+def get_contact(client, target_name=""):
 
-    contacts = client.get_contacts()
     saved_contact = {}
     count = 0
 
-    for contact in contacts:
-        first_name = contact["first_name"] # from a JSON get only first name
-        last_name = contact["last_name"]
+    #iterate over private chats
+    for dialog in client.iter_dialogs():
+        if dialog.chat.type == 'private':
+            user = client.get_users(dialog.chat.id)
 
-        if(filtered_name.lower() in first_name.lower()): # get a specific first name from a list of contacts
-            count += 1
-            if last_name is None:
-                saved_contact[count] = first_name + " " + contact["username"]
-            else:
-                saved_contact[count] = first_name + " " + last_name + " " + contact["username"]
+            first_name = '' if user["first_name"] is None else str(user["first_name"]).lower()
+            last_name = '' if user["last_name"] is None else str(user["last_name"]).lower()
+            phone_number = '' if user["phone_number"] is None else str(user["phone_number"]).lower()
+            username = '' if user["username"] is None else str(user["username"]).lower()
+
+            #if user still exists and the user has specified a name to search or if he wants all users
+            if (not user["is_deleted"]) and ((target_name.lower() != "" and target_name in [first_name, last_name, phone_number, username]) or (target_name == "")):
+                count += 1
+
+                # create a dictionary with most important user infos and add to a global dictionary of users
+                contact_details = {}
+                contact_details["username"] = username
+                contact_details["first_name"] = first_name
+                contact_details["last_name"] = last_name
+                contact_details["userId"] = user["id"]
+                contact_details["phone_number"] = phone_number
+
+                #add the dictionary to a global variable
+                saved_contact[count] = contact_details
 
     return saved_contact
-
 
 def generateContactsNames(client):
     
@@ -121,7 +133,7 @@ def getChatLogsOfUser(client, useridentifier):
                     formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Not possible to find the type of message"))
             return formattedLog
         
-        except FloodWait as exception:
+        except FloodWait:
             print("[getChatLogsOfUser] FloodWait exception may be fired by Telegram. Waiting 29s")
             time.sleep(29) #this value is specifically provided by Telegram, relating to the particular API calling which caused the exception
 
@@ -134,14 +146,14 @@ def getChatIdFromPhoneNumber(client, phoneNumber):
             chat_details = client.get_chat(phoneNumber)
             return chat_details.id
         
-        except FloodWait as exception:
+        except FloodWait:
             print("[getIdFromNumber] FloodWait exception may be fired by Telegram. Waiting 28s")
             time.sleep(28) #this value is specifically provided by Telegram, relating to the particular API calling which caused the exception
 
 
 def menu_get_contact(client):
-
-    target_name = input("Enter a target first name: ")
+    user = {}
+    target_name = input("You can enter one of the following informations: \n- First name \n- Last name \n- Telegram username \n- Phone number (in this case remember to indicate also the phone prefix): ")
     name = get_contact(client, target_name)
 
     if(len(name) == 0):
@@ -152,18 +164,17 @@ def menu_get_contact(client):
     if len(name) > 1:
         print("There are multiple contacts. which one do you want to choose?")
         for key in name:
-            print(str(key) + " " + name[key])
+            print(str(key) + " " + name[key]['first_name'] + " " + name[key]['last_name'] + " with phone number: " + name[key]['phone_number'])
 
         key = int(input("Select number please: "))
 
-        if(key < 0 or key > len(name)):
+        if(key <= 0 or key > len(name)):
             print("C'mon duuuude!!!")
             sys.exit()
 
-    # Split for username
-    # Eg: First_Name Last_Name Username <--- take username at the end
-    username = name[key].split(" ")[-1]
-    print(username) 
+    #Create a dictionary where the key is equal to the user id and the object is the selected user
+    user[name[key]["userId"]] = name[key]
+    return user
 
 
 def load_app_configuration(configFileName):
@@ -273,6 +284,18 @@ def writeAllContactsChatsLogsFile(client, all_contacts_chat_logs_file_path, cont
                 file.write("\n -------------------- END  " + stringContact + " -------------------- \n")
 
 
+def writeSingleUserChatsLogsFile(client, all_contacts_chat_logs_file_path, chatIdNameDict):
+
+    # Create logs file for every contact on the phone
+        with open(all_contacts_chat_logs_file_path, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
+            # Logs about existing chats
+            for chatId in chatIdNameDict.keys():
+                print("[writeAllChatsLogsFile] Processing " + chatIdNameDict[chatId]["first_name"] + " contact")
+                file.write("\n -------------------- START " + chatIdNameDict[chatId]["first_name"] + " -------------------- \n")
+                for msgLog in getChatLogsOfUser(client, chatId):
+                    file.write("\n" + msgLog)
+                file.write("\n -------------------- END  " + chatIdNameDict[chatId]["first_name"] + " -------------------- \n")
+
 
 if __name__ == "__main__":
 
@@ -283,9 +306,14 @@ if __name__ == "__main__":
     # Create an istance of the pyrogram client
     with Client("my_account") as client:
 
-        # Get chats details by dialogs
-        chatIdNameDict, deletedChatdIds = getChatIdsByDialogs(client) 
-        writeAllChatsLogsFile(client, all_contacts_chat_logs_file_path, chatIdNameDict, deletedChatdIds)
+        type_of_extraction = input("Enter: \n1 to search for a single user \n2 to extract all chats: \n")
+        if int(type_of_extraction) == 1:
+            chatIdNameDict = menu_get_contact(client)
+            writeSingleUserChatsLogsFile(client, all_contacts_chat_logs_file_path, chatIdNameDict)
+        else:
+            # Get chats details by dialogs
+            chatIdNameDict, deletedChatdIds = getChatIdsByDialogs(client)
+            writeAllChatsLogsFile(client, all_contacts_chat_logs_file_path, chatIdNameDict, deletedChatdIds)
         
         # Gets the list of contacts saved into user's book
         #tgIdPhoneDictionary, contactNames = getContactsData(client, path_identifiers_phone_numbers_file, path_identifiers_list_file)
