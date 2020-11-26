@@ -1,0 +1,5 @@
+{
+    "all_contacts_chat_logs_file_path": ".\\allContactsLogs.txt",
+    "identifiers_phone_numbers_dump_path": ".\\identifiersPhones.json",
+    "identifiers_list_dump_path": ".\\identifiers.json"
+}
