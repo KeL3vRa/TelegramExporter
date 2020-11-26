@@ -247,9 +247,9 @@ def writeAllChatsLogsFile(client, all_contacts_chat_logs_file_path, chatIdNameDi
                     file.write("\n" + msgLog)
                 file.write("\n -------------------- END  " + chatIdNameDict[chatId] + " -------------------- \n")
             # Logs about deleted chats
+            file.write("\n\n ///////////////////  DELETED CHATS \\\\\\\\\\\\\\\\\\\\ \n\n")
             for chatId in deletedChatdIds:
-                file.write("\n\n ///////////////////  DELETED CHATS \\\\\\\\\\\\\\\\\\\\ \n\n")
-                print("[writeAllChatsLogsFile] Processing " + str(chatId) + " contact")
+                print("[writeAllChatsLogsFile] Processing " + str(chatId) + " deleted chat")
                 file.write("\n -------------------- START " + str(chatId) + " -------------------- \n")
                 for msgLog in getChatLogsOfUser(client, chatId):
                     file.write("\n" + msgLog)
