@@ -85,7 +85,7 @@ def get_contact(client, target_name=""):
     non_contact_chat_dict = dict()
     count = 0
 
-    print("\n[get_contact] Retrieving all matching contacts")
+    print("\n[get_contact] Retrieving all matching contacts\n")
     # iterate over private chats
     for dialog in client.iter_dialogs():
         if dialog.chat.type == 'private':
@@ -100,20 +100,20 @@ def get_contact(client, target_name=""):
             if (not user["is_deleted"]) and ((target_name.lower() != "" and target_name.lower() in [first_name, last_name, phone_number, username, title]) or (target_name == "")):
                 count += 1
 
-                print("\n[get_contact] Chat match found")
+                print("[get_contact] Person chat match found")
                 # add the dictionary to the resulting variable
                 saved_contact.append(user)
 
         elif dialog.chat.type == 'channel':
             title = dialog.chat.title
             if (target_name.lower() in title.lower()):
-                print("\n[get_contact] Channel match found")
+                print("[get_contact] Channel chat match found")
                 non_contact_chat_dict[dialog.chat.id] = title
 
-        elif dialog.chat.type == 'group':  # TODO aggiungere supergruppo
+        elif dialog.chat.type == 'group':  # TODO aggiungere supergruppo e bot
             title = dialog.chat.title
             if (target_name.lower() in title.lower()):
-                print("\n[get_contact] Group match found")
+                print("[get_contact] Group chat match found")
                 non_contact_chat_dict[dialog.chat.id] = title
 
     return saved_contact, non_contact_chat_dict
@@ -134,7 +134,7 @@ def menu_get_contact(client):
     key = 0
     total_contacts_count = len(users) + len(non_user_dict)
     if total_contacts_count > 1:
-        print("[menu_get_contact] There are multiple contacts. which one do you want to choose?")
+        print("\n[menu_get_contact] There are multiple matching chats. Which one do you want to choose?\n")
         for user in users:
             chatDataToLog = ""
             if user.username is not None:
@@ -146,10 +146,9 @@ def menu_get_contact(client):
             if user.phone_number is not None:
                 chatDataToLog = chatDataToLog + "Telephone number: {} ".format(user.phone_number)
 
-            print(str(key) + " " + chatDataToLog)
+            print(str(key) + " " + chatDataToLog + "\n")
             key += 1
-        
-        print("[menu_get_contact] There are multiple non-person chat. which one do you want to choose?")
+
         for chat_id in non_user_dict:
             print(str(key) + " " + non_user_dict[chat_id])
             key += 1
@@ -180,7 +179,7 @@ def getChatIdsByDialogs(client):
 
     for dialog in client.iter_dialogs():
         if not dialog.chat.username is None:
-            #TO AVOID CHANNELS COMMENT NEXT LINE ADD
+            #DEBUG: TO AVOID CHANNELS COMMENT NEXT LINE ADD
             if dialog.chat.title is None:
                 chatIdsList.append(dialog.chat.id)
             chatIdUsernamesDict[dialog.chat.id] = dialog.chat.username
@@ -194,7 +193,7 @@ def getChatIdsByDialogs(client):
             print("\n[getChatIdsByDialogs] Retrieved chat with username: {}".format(dialog.chat.username))
         
         if not dialog.chat.title is None:
-            #TO AVOID CHANNELS COMMENT NEXT LINE
+            #DEBUG: TO AVOID CHANNELS COMMENT NEXT LINE
             #chatIdsList.append(dialog.chat.id)
             chatIdChannelTitleDict[dialog.chat.id] = dialog.chat.title
             print("\n[getChatIdsByDialogs] Retrieved chat with title: {}".format(dialog.chat.title))
