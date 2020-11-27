@@ -154,29 +154,32 @@ def getChatIdFromPhoneNumber(client, phoneNumber):
 
 
 def menu_get_contact(client):
-    target_name = input("You can enter one of the following informations: \n- First name \n- Last name \n- Telegram username \n- Phone number (in this case remember to indicate also the phone prefix): ")
+    target_name = input("You can enter one of the following informations: \n- Book name \n- Telegram username \n- Channel name \n- Phone number (in this case remember to indicate also the phone prefix): ")
     users, channels_dict = get_contact(client, target_name)
 
     if not users and not bool(channels_dict):
         print("No contacts found!")
         sys.exit()
 
-    total_contacts_count = len(users) + len(channels_dict)
     key = 0
+    total_contacts_count = len(users) + len(channels_dict)
     if total_contacts_count > 1:
         print("There are multiple contacts. which one do you want to choose?")
         for user in users:
             chatDataToLog = ""
+            if user.username is not None:
+                chatDataToLog = chatDataToLog + "Username: {} ".format(user.username)
             if user.first_name is not None:
-                chatDataToLog = chatDataToLog + "Username: {} ".format(user.first_name)
+                chatDataToLog = chatDataToLog + "First Name: {} ".format(user.first_name)
             if user.last_name is not None:
                 chatDataToLog = chatDataToLog + "Last Name: {} ".format(user.last_name)
             if user.phone_number is not None:
-                chatDataToLog = chatDataToLog + "Last Name: {} ".format(user.phone_number)
+                chatDataToLog = chatDataToLog + "Telephone number: {} ".format(user.phone_number)
 
             print(str(key) + " " + chatDataToLog)
             key += 1
         
+        print("There are multiple channels. which one do you want to choose?")
         for channel_id in channels_dict:
             print(str(key) + " " + channels_dict[channel_id])
             key += 1
@@ -184,13 +187,14 @@ def menu_get_contact(client):
         key = int(input("Select number please: "))
 
         if(key < 0 or key > len(users) + len(channels_dict)):
-            print("C'mon duuuude!!!")
+            print("Invalid input!!!")
             sys.exit()
 
-    # TODO: to handle channels chats and single results in single dicts
     if(key < len(users)):
+        # here we are returning a precise contact (from users list) and an empty dictionary (channels_dict)
         return users[key], channels_dict
     else:
+        # here we are returning a precise channel (in the form id-name) and an empty list (users)
         return users, {list(channels_dict)[key - len(users)] : channels_dict[list(channels_dict)[key - len(users)]]}
         
 
