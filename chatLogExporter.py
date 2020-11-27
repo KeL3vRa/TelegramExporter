@@ -331,23 +331,6 @@ def writeAllChatsLogsFile(client, all_contacts_chat_logs_file_path, chatIdsList,
             file.write("\n -------------------- END  " + str(chatId) + " -------------------- \n")
 
 
-def writeAllContactsChatsLogsFile(client, all_contacts_chat_logs_file_path, contactNames, tgIdPhoneDictionary):
-
-    # Create logs file for every contact on the phone
-        with open(all_contacts_chat_logs_file_path, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
-            for contact in contactNames:
-                stringContact = str(contact)
-                # Necessary to log the book name instead of the userId
-                if stringContact in tgIdPhoneDictionary:
-                    stringContact = tgIdPhoneDictionary[stringContact]
-                print("[writeAllContactsChatsLogsFile] Processing " + stringContact + " contact")
-                
-                file.write("\n -------------------- START " + stringContact + " -------------------- \n")
-                for msgLog in getChatLogsOfUser(client, contact):
-                    file.write("\n" + msgLog)
-                file.write("\n -------------------- END  " + stringContact + " -------------------- \n")
-
-
 def writeSingleUserChatsLogsFile(client, all_contacts_chat_logs_file_path, userObject):
 
     # Create logs file for every contact on the phone
@@ -405,8 +388,3 @@ if __name__ == "__main__":
             chatIdsList, chatIdUsernamesDict, chatIdChannelTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict = getChatIdsByDialogs(client)
             writeAllChatsLogsFile(client, all_contacts_chat_logs_file_path, chatIdsList, chatIdUsernamesDict, chatIdChannelTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict)
        
-        # Gets the list of contacts saved into user's book
-        #tgIdPhoneDictionary, contactNames = getContactsData(client, path_identifiers_phone_numbers_file, path_identifiers_list_file)
-        
-        # Create the log file with all chats fro every user
-        #writeAllContactsChatsLogsFile(client, all_contacts_chat_logs_file_path, contactNames, tgIdPhoneDictionary)
