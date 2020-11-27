@@ -2,7 +2,6 @@ from pyrogram import Client
 from pyrogram.errors import FloodWait
 from datetime import datetime
 import time
-import json
 import sys
 import os
 
@@ -170,18 +169,6 @@ def menu_get_contact(client):
         
 
 
-def load_app_configuration(configFileName):
-
-    config_file = open(configFileName,"r")
-    config_keys = json.load(config_file)
-    config_file.close()
-
-    identifiers_phone_numbers_dump_file = config_keys["identifiers_phone_numbers_dump_path"]
-    identifiers_list_dump_file = config_keys["identifiers_list_dump_path"]
-    
-    return identifiers_phone_numbers_dump_file, identifiers_list_dump_file
-
-
 def getChatIdsByDialogs(client):
 
     chatIdsList = list()
@@ -232,6 +219,7 @@ def getChatIdsByDialogs(client):
             deletedChatdIds.append(dialog.chat.id)
 
     return chatIdsList, chatIdUsernamesDict, chatIdChannelTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict
+
 
 """
 Metodo che si occupa della scrittura su file di tutte le chat comprese quelle eliminate
@@ -349,11 +337,7 @@ def writeSingleNonPersonChatLogsFile(client, nonPersonDict):
 
 if __name__ == "__main__":
 
-    # Load configuration values
-    config_file_name = "app_config.json"
-    path_identifiers_phone_numbers_file, path_identifiers_list_file = load_app_configuration(config_file_name)
-
-    #creating log path
+    # creating log path
     if not os.path.exists(_LOG_PATH):
         os.makedirs(_LOG_PATH)
 
