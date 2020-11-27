@@ -4,80 +4,14 @@ from datetime import datetime
 import time
 import json
 import sys
-from os import path
+import os
+
 
 _FORMAT_LOG_STRING = "SENDER:{:20}        DATE:{:19}     MESSAGE:{}"
 _TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
-
-def get_contact(client, target_name=""):
-
-    saved_contact = list()
-    non_contact_chat_dict = dict()
-    count = 0
-
-    print("\n[get_contact] Retrieving all matching contacts")
-    #iterate over private chats
-    for dialog in client.iter_dialogs():
-        if dialog.chat.type == 'private':
-            user = client.get_users(dialog.chat.id)
-
-            first_name = '' if user["first_name"] is None else str(user["first_name"]).lower()
-            last_name = '' if user["last_name"] is None else str(user["last_name"]).lower()
-            phone_number = '' if user["phone_number"] is None else str(user["phone_number"]).lower()
-            username = '' if user["username"] is None else str(user["username"]).lower()
-            
-
-            #if user still exists and the user has specified a name to search or if he wants all users
-            if (not user["is_deleted"]) and ((target_name.lower() != "" and target_name.lower() in [first_name, last_name, phone_number, username, title]) or (target_name == "")):
-                count += 1
-
-                print("\n[get_contact] Chat match found")
-                #add the dictionary to the resulting variable
-                saved_contact.append(user)
-
-        elif dialog.chat.type == 'channel':
-            title = dialog.chat.title
-            if (target_name.lower() in title.lower()):
-                print("\n[get_contact] Channel match found")
-                non_contact_chat_dict[dialog.chat.id] = title
-
-        elif dialog.chat.type == 'group':
-            title = dialog.chat.title
-            if (target_name.lower() in title.lower()):
-                print("\n[get_contact] Group match found")
-                non_contact_chat_dict[dialog.chat.id] = title
-
-    return saved_contact, non_contact_chat_dict
-
-def generateContactsNames(client):
-    
-    contactsUsernames = list()
-    tgIdPhoneDictionary = dict()
-    # Gets contacts details
-    contacts = client.get_contacts()
-    for contact in contacts:
-        if not contact.username is None:
-            contactsUsernames.append(contact.username)
-        elif not contact.phone_number is None:
-            print("\n[generateContactsNames] Username not found for phone number {}".format(contact.phone_number))
-            correspondantId = getChatIdFromPhoneNumber(client, contact.phone_number)
-            # Identify the full name of the person who owns the phone number
-            formattedName = contact.first_name
-            if not contact.last_name is None:
-                formattedName = formattedName + " " + contact.last_name
-            tgIdPhoneDictionary[correspondantId] = formattedName
-            print("[generateContactsNames] Is is owned by {}".format(formattedName))
-            # Adds the contact name to the list
-            contactsUsernames.append(correspondantId)
-        else:
-            formattedName = contact.first_name
-            if not contact.last_name is None:
-                formattedName = formattedName + "_" + contact.last_name
-            print("[generateContactsNames] username or phone number not found for {}".format(formattedName))
-        
-    return contactsUsernames, tgIdPhoneDictionary
-
+#SAVING PATH
+_LOG_PATH = "extraction"
 
 # Get the all messages in the chat with a given user
 def getChatLogsOfUser(client, useridentifier):
@@ -146,17 +80,44 @@ def getChatLogsOfUser(client, useridentifier):
             time.sleep(29) #this value is specifically provided by Telegram, relating to the particular API calling which caused the exception
 
 
-def getChatIdFromPhoneNumber(client, phoneNumber):
-    
-    while True:
-        # Gets the details of a chat
-        try:
-            chat_details = client.get_chat(phoneNumber)
-            return chat_details.id
-        
-        except FloodWait:
-            print("[getIdFromNumber] FloodWait exception may be fired by Telegram. Waiting 28s")
-            time.sleep(28) #this value is specifically provided by Telegram, relating to the particular API calling which caused the exception
+
+def get_contact(client, target_name=""):
+    saved_contact = list()
+    non_contact_chat_dict = dict()
+    count = 0
+
+    print("\n[get_contact] Retrieving all matching contacts")
+    # iterate over private chats
+    for dialog in client.iter_dialogs():
+        if dialog.chat.type == 'private':
+            user = client.get_users(dialog.chat.id)
+
+            first_name = '' if user["first_name"] is None else str(user["first_name"]).lower()
+            last_name = '' if user["last_name"] is None else str(user["last_name"]).lower()
+            phone_number = '' if user["phone_number"] is None else str(user["phone_number"]).lower()
+            username = '' if user["username"] is None else str(user["username"]).lower()
+
+            # if user still exists and the user has specified a name to search or if he wants all users
+            if (not user["is_deleted"]) and ((target_name.lower() != "" and target_name.lower() in [first_name, last_name, phone_number, username, title]) or (target_name == "")):
+                count += 1
+
+                print("\n[get_contact] Chat match found")
+                # add the dictionary to the resulting variable
+                saved_contact.append(user)
+
+        elif dialog.chat.type == 'channel':
+            title = dialog.chat.title
+            if (target_name.lower() in title.lower()):
+                print("\n[get_contact] Channel match found")
+                non_contact_chat_dict[dialog.chat.id] = title
+
+        elif dialog.chat.type == 'group':  # TODO aggiungere supergruppo
+            title = dialog.chat.title
+            if (target_name.lower() in title.lower()):
+                print("\n[get_contact] Group match found")
+                non_contact_chat_dict[dialog.chat.id] = title
+
+    return saved_contact, non_contact_chat_dict
 
 
 def menu_get_contact(client):
@@ -211,42 +172,10 @@ def load_app_configuration(configFileName):
     config_keys = json.load(config_file)
     config_file.close()
 
-    all_contacts_chat_logs_file_path = config_keys["all_contacts_chat_logs_file_path"]
     identifiers_phone_numbers_dump_file = config_keys["identifiers_phone_numbers_dump_path"]
     identifiers_list_dump_file = config_keys["identifiers_list_dump_path"]
     
-    return all_contacts_chat_logs_file_path, identifiers_phone_numbers_dump_file, identifiers_list_dump_file
-
-
-def getContactsData(client, path_identifiers_phone_numbers_file, path_identifiers_list_file):
-
-    # Generates contacts list only the first execution
-    if not path.exists(path_identifiers_list_file) or not path.exists(path_identifiers_phone_numbers_file):
-        # Retrieve all contacts' names and the corresponance identifier_phoneNumber
-        contactNames, tgIdPhoneDictionary = generateContactsNames(client)
-        # Dumps tgIdPhoneDictionary dict
-        file = open(path_identifiers_phone_numbers_file,"w")
-        json.dump(tgIdPhoneDictionary, file)
-        file.close()
-        print("[getContactsData] correspondance identifier_phoneNumber dumped")
-        # Dumps identifiers list
-        file = open(path_identifiers_list_file,"w")
-        json.dump(contactNames, file)
-        file.close()
-        print("[getContactsData] contacts' names list dumped")
-    else :
-        # Loads tgIdPhoneDictionary dict
-        dump_file = open(path_identifiers_phone_numbers_file, "r")
-        tgIdPhoneDictionary = json.load(dump_file)
-        dump_file.close()
-        print("[getContactsData] corresponance identifier_phoneNumber loaded")
-        # Loads identifiers dict
-        dump_file = open(path_identifiers_list_file, "r")
-        contactNames = json.load(dump_file)
-        dump_file.close()
-        print("[getContactsData] contacts' names list loaded")
-
-    return tgIdPhoneDictionary, contactNames
+    return identifiers_phone_numbers_dump_file, identifiers_list_dump_file
 
 
 def getChatIdsByDialogs(client):
@@ -260,8 +189,9 @@ def getChatIdsByDialogs(client):
 
     for dialog in client.iter_dialogs():
         if not dialog.chat.username is None:
-            #TO AVOID CHANNELS COMMENT NEXT LINE ADD if dialog.chat.title is None:
-            chatIdsList.append(dialog.chat.id)
+            #TO AVOID CHANNELS COMMENT NEXT LINE ADD
+            if dialog.chat.title is None:
+                chatIdsList.append(dialog.chat.id)
             chatIdUsernamesDict[dialog.chat.id] = dialog.chat.username
             # Tries to get the person phone number retrieving his id
             ids = list()
@@ -274,7 +204,7 @@ def getChatIdsByDialogs(client):
         
         if not dialog.chat.title is None:
             #TO AVOID CHANNELS COMMENT NEXT LINE
-            chatIdsList.append(dialog.chat.id)
+            #chatIdsList.append(dialog.chat.id)
             chatIdChannelTitleDict[dialog.chat.id] = dialog.chat.title
             print("\n[getChatIdsByDialogs] Retrieved chat with title: {}".format(dialog.chat.title))
 
@@ -299,79 +229,129 @@ def getChatIdsByDialogs(client):
 
     return chatIdsList, chatIdUsernamesDict, chatIdChannelTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict
 
-
-def writeAllChatsLogsFile(client, all_contacts_chat_logs_file_path, chatIdsList, chatIdUsernamesDict, chatIdChannelTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict):
+"""
+Metodo che si occupa della scrittura su file di tutte le chat comprese quelle eliminate
+Viene generato un file per ogni chat in modo dinamico
+"""
+def writeAllChatsLogsFile(client, chatIdsList, chatIdUsernamesDict, chatIdChannelTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict):
 
     # Create logs file for every contact on the phone
-    with open(all_contacts_chat_logs_file_path, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
-        # Logs about existing chats
-        for chatId in chatIdsList:
-            chatDataToLog = ""
-            if chatId in chatIdUsernamesDict:
-                chatDataToLog = chatDataToLog + "Username: {} ".format(chatIdUsernamesDict[chatId])
-            if chatId in chatIdChannelTitleDict:
-                chatDataToLog = chatDataToLog + "ChannelName: {} ".format(chatIdChannelTitleDict[chatId])
-            if chatId in chatIdFullNameDict:
-                chatDataToLog = chatDataToLog + "Full Name: {} ".format(chatIdFullNameDict[chatId])
-            if chatId in chatIdPhoneNumberDict:
-                chatDataToLog = chatDataToLog + "Phone number: {} ".format(chatIdPhoneNumberDict[chatId])
+    for chatId in chatIdsList:
+        chatDataToLog = ""
+        if chatId in chatIdUsernamesDict:
+            chatDataToLog = chatDataToLog + "Username: {} ".format(chatIdUsernamesDict[chatId])
+        if chatId in chatIdChannelTitleDict:
+            chatDataToLog = chatDataToLog + "ChannelName: {} ".format(chatIdChannelTitleDict[chatId])
+        if chatId in chatIdFullNameDict:
+            chatDataToLog = chatDataToLog + "Full Name: {} ".format(chatIdFullNameDict[chatId])
+        if chatId in chatIdPhoneNumberDict:
+            chatDataToLog = chatDataToLog + "Phone number: {} ".format(chatIdPhoneNumberDict[chatId])
 
-            print("[writeAllChatsLogsFile] Processing chat with {}".format(chatDataToLog))
+        #creating file name
+        fileName = ""
+        if chatId in chatIdUsernamesDict:
+            fileName = fileName + "{}_".format(chatIdUsernamesDict[chatId])
+        if chatId in chatIdChannelTitleDict:
+            fileName = fileName + "{}_".format(chatIdChannelTitleDict[chatId])
+        if chatId in chatIdFullNameDict:
+            fileName = fileName + "{}_".format(chatIdFullNameDict[chatId])
+        if chatId in chatIdPhoneNumberDict:
+            fileName = fileName + "{}_".format(chatIdPhoneNumberDict[chatId])
+        fileName = fileName + ".txt"
+        fileName = _LOG_PATH + os.sep + fileName
+
+        print("[writeAllChatsLogsFile] Processing chat with {}".format(chatDataToLog))
+        with open(fileName, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
+        # Logs about existing chats
             file.write("\n -------------------- START {} -------------------- \n".format(chatDataToLog))
             for msgLog in getChatLogsOfUser(client, chatId):
                 file.write("\n" + msgLog)
-            file.write("\n -------------------- END {} -------------------- \n".format(chatDataToLog))
-        # Logs about deleted chats
-        file.write("\n\n ///////////////////  DELETED CHATS \\\\\\\\\\\\\\\\\\\\ \n\n")
-        for chatId in deletedChatdIds:
+            file.write("\n\n -------------------- END {} -------------------- \n".format(chatDataToLog))
+
+
+    # Logs about deleted chats
+    print("[writeAllChatsLogsFile] Processing DELETED CHATS \n\n")
+    for chatId in deletedChatdIds:
+        fileName = str(chatId) + "_deleted.txt"
+        fileName = _LOG_PATH + os.sep + fileName
+        with open(fileName, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
             print("[writeAllChatsLogsFile] Processing " + str(chatId) + " deleted chat")
             file.write("\n -------------------- START " + str(chatId) + " -------------------- \n")
             for msgLog in getChatLogsOfUser(client, chatId):
                 file.write("\n" + msgLog)
-            file.write("\n -------------------- END  " + str(chatId) + " -------------------- \n")
+            file.write("\n\n -------------------- END  " + str(chatId) + " -------------------- \n")
 
 
-def writeSingleUserChatsLogsFile(client, all_contacts_chat_logs_file_path, userObject):
+"""
+Metodo che si occupa di scrivere su file le chat con UN determinato utente
+"""
+def writeSingleUserChatsLogsFile(client, userObject):
 
     # Create logs file for every contact on the phone
-    with open(all_contacts_chat_logs_file_path, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
-        chatDataToLog = ""
-        if userObject.username is not None:
-            chatDataToLog = chatDataToLog + "Username: {} ".format(userObject.username)
-        if userObject.first_name is not None:
-            name = userObject.first_name
-            if userObject.last_name is not None:
-                name = name + " " + userObject.last_name
-            chatDataToLog = chatDataToLog + "Full Name: {} ".format(name)
-        if userObject.phone_number is not None:
-            chatDataToLog = chatDataToLog + "Phone number: {} ".format(userObject.phone_number)
-        
-        print("\n[writeSingleUserChatsLogsFile] Processing " + chatDataToLog + " contact")
+    chatDataToLog = ""
+    if userObject.username is not None:
+        chatDataToLog = chatDataToLog + "Username: {} ".format(userObject.username)
+    if userObject.first_name is not None:
+        name = userObject.first_name
+        if userObject.last_name is not None:
+            name = name + " " + userObject.last_name
+        chatDataToLog = chatDataToLog + "Full Name: {} ".format(name)
+    if userObject.phone_number is not None:
+        chatDataToLog = chatDataToLog + "Phone number: {} ".format(userObject.phone_number)
+
+    # creating file name
+    fileName = ""
+    if userObject.username is not None:
+        fileName = fileName + "{}_".format(userObject.username)
+    if userObject.first_name is not None:
+        name = userObject.first_name
+        if userObject.last_name is not None:
+            name = name + " " + userObject.last_name
+        fileName = fileName + "{}_".format(name)
+    if userObject.phone_number is not None:
+        fileName = fileName + "{}_".format(userObject.phone_number)
+    fileName = fileName + ".txt"
+    fileName = _LOG_PATH + os.sep + fileName
+
+    print("\n[writeSingleUserChatsLogsFile] Processing " + chatDataToLog + " contact")
+    with open(fileName, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
         file.write("\n -------------------- START {} -------------------- \n".format(chatDataToLog))
         for msgLog in getChatLogsOfUser(client, userObject.id):
             file.write("\n" + msgLog)
-        file.write("\n -------------------- END {} -------------------- \n".format(chatDataToLog))
+        file.write("\n\n -------------------- END {} -------------------- \n".format(chatDataToLog))
 
-
-def writeSingleNonPersonChatLogsFile(client, all_contacts_chat_logs_file_path, nonPersonDict):
+"""
+Metodo che si occupa della scrittura su file delle chat con canali/gruppi
+Il nome file viene generato dinamicamente
+"""
+def writeSingleNonPersonChatLogsFile(client, nonPersonDict):
 
     # Create logs file for every contact on the phone
-    with open(all_contacts_chat_logs_file_path, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
-        chatDataToLog = ""
-        chatDataToLog = chatDataToLog + "Title: {} ".format(nonPersonDict[list(nonPersonDict)[0]])
-        
-        print("\n[writeSingleNonPersonChatLogsFile] Processing " + chatDataToLog + " chat")
+    chatDataToLog = ""
+    chatDataToLog = chatDataToLog + "Title: {} ".format(nonPersonDict[list(nonPersonDict)[0]])
+
+    fileName = ""
+    fileName = fileName + "{}_".format(nonPersonDict[list(nonPersonDict)[0]])
+    fileName = fileName + ".txt"
+    fileName = _LOG_PATH + os.sep + fileName
+
+    print("\n[writeSingleNonPersonChatLogsFile] Processing " + chatDataToLog + " chat")
+    with open(fileName, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
         file.write("\n -------------------- START {} -------------------- \n".format(chatDataToLog))
         for msgLog in getChatLogsOfUser(client, list(nonPersonDict)[0]):
             file.write("\n" + msgLog)
-        file.write("\n -------------------- END {} -------------------- \n".format(chatDataToLog))
+        file.write("\n\n -------------------- END {} -------------------- \n".format(chatDataToLog))
 
 
 if __name__ == "__main__":
 
     # Load configuration values
     config_file_name = "app_config.json"
-    all_contacts_chat_logs_file_path, path_identifiers_phone_numbers_file, path_identifiers_list_file = load_app_configuration(config_file_name)
+    path_identifiers_phone_numbers_file, path_identifiers_list_file = load_app_configuration(config_file_name)
+
+    #creating log path
+    if not os.path.exists(_LOG_PATH):
+        os.makedirs(_LOG_PATH)
 
     # Create an istance of the pyrogram client
     with Client("my_account") as client:
@@ -380,11 +360,10 @@ if __name__ == "__main__":
         if int(type_of_extraction) == 1:
             chatIdNameDict, nonPersonChatDict = menu_get_contact(client)
             if bool(chatIdNameDict):
-                writeSingleUserChatsLogsFile(client, all_contacts_chat_logs_file_path, chatIdNameDict)
+                writeSingleUserChatsLogsFile(client, chatIdNameDict)
             if bool(nonPersonChatDict):
-                writeSingleNonPersonChatLogsFile(client, all_contacts_chat_logs_file_path, nonPersonChatDict)
+                writeSingleNonPersonChatLogsFile(client, nonPersonChatDict)
         else:
             # Get chats details by dialogs
             chatIdsList, chatIdUsernamesDict, chatIdChannelTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict = getChatIdsByDialogs(client)
-            writeAllChatsLogsFile(client, all_contacts_chat_logs_file_path, chatIdsList, chatIdUsernamesDict, chatIdChannelTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict)
-       
+            writeAllChatsLogsFile(client, chatIdsList, chatIdUsernamesDict, chatIdChannelTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict)
