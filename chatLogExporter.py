@@ -121,7 +121,11 @@ def get_contact(client, target_name=""):
 
 
 def menu_get_contact(client):
-    target_name = input("You can enter one of the following informations: \n- Book name \n- Telegram username \n- Channel name \n- Group name \n- Phone number (in this case remember to indicate also the phone prefix): ")
+    target_name = input("You can enter one of the following informations: "
+                        "\n- Book name \n- Telegram username \n- Channel name \n- Group name "
+                        "\n- Phone number (in this case remember to indicate also the phone prefix): "
+                        "\n- Or press enter if you want to see a list of the chats"
+                        "\n Please enter your decision: ")
     users, non_user_dict = get_contact(client, target_name)
 
     if not users and not bool(non_user_dict):
@@ -159,7 +163,7 @@ def menu_get_contact(client):
 
     if(key < len(users)):
         # here we are returning a precise contact (from users list) and an empty dictionary (non_user_dict)
-        return users[key], non_user_dict
+        return users[key], None
     else:
         # here we are returning a precise non-person chat (in the form id-name) and an empty list (users)
         return users, {list(non_user_dict)[key - len(users)] : non_user_dict[list(non_user_dict)[key - len(users)]]}
