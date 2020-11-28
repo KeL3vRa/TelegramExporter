@@ -6,29 +6,31 @@ import sys
 import os
 
 
-_FORMAT_LOG_STRING = "SENDER:{:20}        DATE:{:19}     MESSAGE:{}"
+_FORMAT_LOG_STRING = "{:20};{:19};{}"
 _TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
-#SAVING PATH
+# CHATS LOG FILE DESTINATION FOLDER NAME
 _LOG_PATH = "extraction"
 
 # Get the all messages in the chat with a given user
-def getChatLogsOfUser(client, useridentifier):
+def getChatLogsByIdentifier(client, useridentifier):
     
     while True:
         try:
             formattedLog = list()
     
-            # Create a list with ALL messages exhanged with useridentifier
+            # Create a list with ALL messages exchanged with userIdentifier
             chat = list()
-            for message in client.iter_history(useridentifier):
+            # DEBUG: for message in client.get_history(useridentifier, limit=3): instead of for message in client.iter_history(useridentifier):
+            for message in client.get_history(useridentifier, limit=3):
+            #for message in client.iter_history(useridentifier):
                 chat.append(message)
             # Iterate over the previously created list
             for msg in chat:
 
                 if not msg.from_user is None:
                     _sender_username = str(msg.from_user.username)
-                else :
+                else:
                     _sender_username = "Channel message"
                 _formatted_message_date = datetime.utcfromtimestamp(msg.date).strftime(_TIME_FORMAT)
 
@@ -120,7 +122,7 @@ def get_contact(client, target_name=""):
 
 
 def menu_get_contact(client):
-    target_name = input("You can enter one of the following informations: "
+    target_name = input("You can enter one of the following information: "
                         "\n- Book name \n- Telegram username \n- Channel name \n- Group name "
                         "\n- Phone number (in this case remember to indicate also the phone prefix): "
                         "\n- Or press enter if you want to see a list of the chats"
@@ -172,16 +174,15 @@ def getChatIdsByDialogs(client):
 
     chatIdsList = list()
     chatIdUsernamesDict = dict()
-    chatIdChannelTitleDict = dict()
+    chatIdTitleDict = dict()
     chatIdFullNameDict = dict()
     chatIdPhoneNumberDict = dict()
     deletedChatdIds = list()
 
     for dialog in client.iter_dialogs():
         if not dialog.chat.username is None:
-            #DEBUG: TO AVOID CHANNELS COMMENT NEXT LINE ADD
-            if dialog.chat.title is None:
-                chatIdsList.append(dialog.chat.id)
+            #DEBUG: TO AVOID CHANNELS COMMENT NEXT LINE ADD if dialog.chat.title is None:
+            chatIdsList.append(dialog.chat.id)
             chatIdUsernamesDict[dialog.chat.id] = dialog.chat.username
             # Tries to get the person phone number retrieving his id
             ids = list()
@@ -194,8 +195,8 @@ def getChatIdsByDialogs(client):
         
         if not dialog.chat.title is None:
             #DEBUG: TO AVOID CHANNELS COMMENT NEXT LINE
-            #chatIdsList.append(dialog.chat.id)
-            chatIdChannelTitleDict[dialog.chat.id] = dialog.chat.title
+            chatIdsList.append(dialog.chat.id)
+            chatIdTitleDict[dialog.chat.id] = dialog.chat.title
             print("\n[getChatIdsByDialogs] Retrieved chat with title: {}".format(dialog.chat.title))
 
         if not dialog.chat.first_name is None:
@@ -217,60 +218,62 @@ def getChatIdsByDialogs(client):
             print("\n[getChatIdsByDialogs] No info found for chat {}; it means the other user deleted his account".format(dialog.chat.id))
             deletedChatdIds.append(dialog.chat.id)
 
-    return chatIdsList, chatIdUsernamesDict, chatIdChannelTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict
+    return chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict
 
 
 """
 Metodo che si occupa della scrittura su file di tutte le chat comprese quelle eliminate
 Viene generato un file per ogni chat in modo dinamico
 """
-def writeAllChatsLogsFile(client, chatIdsList, chatIdUsernamesDict, chatIdChannelTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict):
+def writeAllChatsLogsFile(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict):
 
     # Create logs file for every contact on the phone
     for chatId in chatIdsList:
-        chatDataToLog = ""
+        chat_data_to_log = ""
+        header_string = "SENDER;TIMESTAMP;MESSAGE"
         if chatId in chatIdUsernamesDict:
-            chatDataToLog = chatDataToLog + "Username: {} ".format(chatIdUsernamesDict[chatId])
-        if chatId in chatIdChannelTitleDict:
-            chatDataToLog = chatDataToLog + "ChannelName: {} ".format(chatIdChannelTitleDict[chatId])
+            chat_data_to_log = chat_data_to_log + "{};".format(chatIdUsernamesDict[chatId])
         if chatId in chatIdFullNameDict:
-            chatDataToLog = chatDataToLog + "Full Name: {} ".format(chatIdFullNameDict[chatId])
+            chat_data_to_log = chat_data_to_log + "{};".format(chatIdFullNameDict[chatId])
         if chatId in chatIdPhoneNumberDict:
-            chatDataToLog = chatDataToLog + "Phone number: {} ".format(chatIdPhoneNumberDict[chatId])
+            chat_data_to_log = chat_data_to_log + "{};".format(chatIdPhoneNumberDict[chatId])
+        if chatId in chatIdTitleDict:
+            chat_data_to_log = chat_data_to_log + "{};".format(chatIdTitleDict[chatId])
 
-        #creating file name
-        fileName = ""
+        # creating file name
+        file_name = ""
         if chatId in chatIdUsernamesDict:
-            fileName = fileName + "{}_".format(chatIdUsernamesDict[chatId])
-        if chatId in chatIdChannelTitleDict:
-            fileName = fileName + "{}_".format(chatIdChannelTitleDict[chatId])
+            file_name = file_name + "{}_".format(chatIdUsernamesDict[chatId])
+        if chatId in chatIdTitleDict:
+            file_name = file_name + "{}_".format(chatIdTitleDict[chatId])
         if chatId in chatIdFullNameDict:
-            fileName = fileName + "{}_".format(chatIdFullNameDict[chatId])
+            file_name = file_name + "{}_".format(chatIdFullNameDict[chatId])
         if chatId in chatIdPhoneNumberDict:
-            fileName = fileName + "{}_".format(chatIdPhoneNumberDict[chatId])
-        fileName = fileName + ".txt"
-        fileName = _LOG_PATH + os.sep + fileName
+            file_name = file_name + "{}_".format(chatIdPhoneNumberDict[chatId])
+        # Removing illegal characters from file name
+        file_name = (file_name.replace("\\", "_")).replace("/", "_")
+        file_name = file_name + ".csv"
+        file_name = _LOG_PATH + os.sep + file_name
 
-        print("[writeAllChatsLogsFile] Processing chat with {}".format(chatDataToLog))
-        with open(fileName, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
         # Logs about existing chats
-            file.write("\n -------------------- START {} -------------------- \n".format(chatDataToLog))
-            for msgLog in getChatLogsOfUser(client, chatId):
+        print("[writeAllChatsLogsFile] Processing chat with {}".format(chat_data_to_log))
+        with open(file_name, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
+            file.write(header_string)
+            for msgLog in getChatLogsByIdentifier(client, chatId):
                 file.write("\n" + msgLog)
-            file.write("\n\n -------------------- END {} -------------------- \n".format(chatDataToLog))
-
 
     # Logs about deleted chats
-    print("[writeAllChatsLogsFile] Processing DELETED CHATS \n\n")
+    print("[writeAllChatsLogsFile] Processing deleted chats \n\n")
     for chatId in deletedChatdIds:
-        fileName = str(chatId) + "_deleted.txt"
-        fileName = _LOG_PATH + os.sep + fileName
-        with open(fileName, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
-            print("[writeAllChatsLogsFile] Processing " + str(chatId) + " deleted chat")
-            file.write("\n -------------------- START " + str(chatId) + " -------------------- \n")
-            for msgLog in getChatLogsOfUser(client, chatId):
+        header_string = "ID"
+        file_name = str(chatId) + "_deleted.csv"
+        file_name = _LOG_PATH + os.sep + file_name
+
+        print("[writeAllChatsLogsFile] Processing " + str(chatId) + " deleted chat")
+        with open(file_name, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
+            file.write(header_string)
+            for msgLog in getChatLogsByIdentifier(client, chatId):
                 file.write("\n" + msgLog)
-            file.write("\n\n -------------------- END  " + str(chatId) + " -------------------- \n")
 
 
 """
@@ -307,7 +310,7 @@ def writeSingleUserChatsLogsFile(client, userObject):
     print("\n[writeSingleUserChatsLogsFile] Processing " + chatDataToLog + " contact")
     with open(fileName, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
         file.write("\n -------------------- START {} -------------------- \n".format(chatDataToLog))
-        for msgLog in getChatLogsOfUser(client, userObject.id):
+        for msgLog in getChatLogsByIdentifier(client, userObject.id):
             file.write("\n" + msgLog)
         file.write("\n\n -------------------- END {} -------------------- \n".format(chatDataToLog))
 
@@ -317,19 +320,21 @@ Il nome file viene generato dinamicamente
 """
 def writeSingleNonPersonChatLogsFile(client, nonPersonDict):
 
+    # gets the key of the unique value in the dictionary
+    dictKey = list(nonPersonDict)[0]
     # Create logs file for every contact on the phone
     chatDataToLog = ""
-    chatDataToLog = chatDataToLog + "Title: {} ".format(nonPersonDict[list(nonPersonDict)[0]])
+    chatDataToLog = chatDataToLog + "Title: {} ".format(nonPersonDict[dictKey])
 
     fileName = ""
-    fileName = fileName + "{}_".format(nonPersonDict[list(nonPersonDict)[0]])
+    fileName = fileName + "{}_".format(nonPersonDict[dictKey])
     fileName = fileName + ".txt"
     fileName = _LOG_PATH + os.sep + fileName
 
     print("\n[writeSingleNonPersonChatLogsFile] Processing " + chatDataToLog + " chat")
     with open(fileName, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
         file.write("\n -------------------- START {} -------------------- \n".format(chatDataToLog))
-        for msgLog in getChatLogsOfUser(client, list(nonPersonDict)[0]):
+        for msgLog in getChatLogsByIdentifier(client, dictKey):
             file.write("\n" + msgLog)
         file.write("\n\n -------------------- END {} -------------------- \n".format(chatDataToLog))
 
@@ -352,5 +357,5 @@ if __name__ == "__main__":
                 writeSingleNonPersonChatLogsFile(client, nonPersonChatDict)
         else:
             # Get chats details by dialogs
-            chatIdsList, chatIdUsernamesDict, chatIdChannelTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict = getChatIdsByDialogs(client)
-            writeAllChatsLogsFile(client, chatIdsList, chatIdUsernamesDict, chatIdChannelTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict)
+            chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict = getChatIdsByDialogs(client)
+            writeAllChatsLogsFile(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict)

@@ -138,8 +138,8 @@ dmypy.json
 extraction/
 
 #Telegram session file
-my_account.session
-credential.json
+*.session
+*.session-journal
 
 # Created log file
 *.txt
