@@ -19,7 +19,7 @@ _DOWNLOAD_MEDIA_PATH = "media"
 
 
 # Get the all messages in the chat with a given user
-def getChatLogsByIdentifier(client, useridentifier, directory_name):
+def get_chat_logs_by_identifier(client_instance, user_identifier, directory_name):
     json_config = open("configuration.json", "r")
     load_json = json.load(json_config)
     export_media = load_json["export_media"]
@@ -31,7 +31,7 @@ def getChatLogsByIdentifier(client, useridentifier, directory_name):
             # Create a list with ALL messages exchanged with userIdentifier
             chat = list()
             # DEBUG: for message in client.get_history(useridentifier, limit=3): instead of for message in client.iter_history(useridentifier):
-            for message in client.get_history(useridentifier, limit=3):
+            for message in client_instance.get_history(user_identifier, limit=3):
             #for message in client.iter_history(useridentifier):
                 chat.append(message)
             # Iterate over the previously created list
@@ -41,8 +41,8 @@ def getChatLogsByIdentifier(client, useridentifier, directory_name):
                     if msg.media:
                         try:
                             create_path = _LOG_PATH + _OS_SEP + _DOWNLOAD_MEDIA_PATH + _OS_SEP + directory_name + _OS_SEP
-                            print("Media are downloaded...")
-                            client.download_media(msg, file_name=create_path)
+                            print("Downloading attached media...")
+                            client_instance.download_media(msg, file_name=create_path)
                         except ValueError:
                             print("This media is not downloadable.")
                 # Creates the log first column
@@ -132,26 +132,31 @@ def getChatLogsByIdentifier(client, useridentifier, directory_name):
                                                          dice_obj.to_string())
                     formatted_log.append(log_line)
                 elif msg.service is not None:
-                    formatted_log.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Telegram service message", ""))
+                    formatted_log.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date,
+                                                                   "Telegram service message", ""))
                 elif msg.empty is not None:
-                    formatted_log.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Message was deleted", ""))
+                    formatted_log.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date,
+                                                                   "Message was deleted", ""))
                 elif msg.caption is not None:
-                    formatted_log.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Caption", msg.caption))
+                    formatted_log.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date,
+                                                                   "Caption", msg.caption))
                 else:
-                    formatted_log.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Not possible to find the type of message", ""))
+                    formatted_log.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date,
+                                                                   "Not possible to find the type of message", ""))
             return formatted_log
 
         except FloodWait:
             print("[getChatLogsOfUser] FloodWait exception may be fired by Telegram. Waiting 29s")
-            time.sleep(29) # this value is specifically provided by Telegram, relating to the particular API calling which caused the exception
+            time.sleep(29)  # this value is specifically provided by Telegram,
+            # relating to the particular API calling which caused the exception
 
 
-def get_contact(client, target=""):
+def get_contact(client_instance, target=""):
     """
     Get the contact from a target or get all contact.
     The function distinguishes between “private”, “bot”, “group”, “supergroup” or “channel”.
     Args:
-        client: Pyrogram Client, the main means for interacting with Telegram.
+        client_instance: Pyrogram Client, the main means for interacting with Telegram.
         target: can be: full name or username or phone
 
     Returns:
@@ -164,10 +169,10 @@ def get_contact(client, target=""):
 
     print("\n[get_contact] Retrieving all matching contacts\n")
     # iterate over private chats
-    for dialog in client.iter_dialogs():
+    for dialog in client_instance.iter_dialogs():
         # Users and bot are handled in the same way by Telegram
         if dialog.chat.type == 'private' or dialog.chat.type == 'bot':
-            user = client.get_users(dialog.chat.id)
+            user = client_instance.get_users(dialog.chat.id)
 
             first_name = '' if user["first_name"] is None else str(user["first_name"]).lower()
             last_name = '' if user["last_name"] is None else str(user["last_name"]).lower()
@@ -194,14 +199,14 @@ def get_contact(client, target=""):
     return saved_contact, non_contact_chat_dict
 
 
-def menu_get_contact(client):
+def menu_get_contact(client_instance):
     target_name = input("You can enter one of the following information: "
                         "\n- Book name \n- Telegram username \n- Channel name \n- Group name "
                         "\n- Phone number (in this case remember to indicate also the phone prefix): "
                         "\n- Or press enter if you want to see a list of the chats"
                         "\n Please enter your decision: ")
 
-    users, non_user_dict = get_contact(client, target_name.lower())
+    users, non_user_dict = get_contact(client_instance, target_name.lower())
 
     if not users and not bool(non_user_dict):
         print("No contacts found!")
@@ -212,17 +217,17 @@ def menu_get_contact(client):
     if total_contacts_count > 1:
         print("\n[menu_get_contact] There are multiple matching chats. Which one do you want to choose?\n")
         for user in users:
-            chatDataToLog = ""
+            chat_data_to_log = ""
             if user.username is not None:
-                chatDataToLog = chatDataToLog + "Username: {} ".format(user.username)
+                chat_data_to_log = chat_data_to_log + "Username: {} ".format(user.username)
             if user.first_name is not None:
-                chatDataToLog = chatDataToLog + "First Name: {} ".format(user.first_name)
+                chat_data_to_log = chat_data_to_log + "First Name: {} ".format(user.first_name)
             if user.last_name is not None:
-                chatDataToLog = chatDataToLog + "Last Name: {} ".format(user.last_name)
+                chat_data_to_log = chat_data_to_log + "Last Name: {} ".format(user.last_name)
             if user.phone_number is not None:
-                chatDataToLog = chatDataToLog + "Telephone number: {} ".format(user.phone_number)
+                chat_data_to_log = chat_data_to_log + "Telephone number: {} ".format(user.phone_number)
 
-            print(str(key) + " " + chatDataToLog)
+            print(str(key) + " " + chat_data_to_log)
             key += 1
 
         for chat_id in non_user_dict:
@@ -234,98 +239,103 @@ def menu_get_contact(client):
             print("[menu_get_contact] Invalid input!!!")
             sys.exit()
 
-    #returns the chatId connected to the user/gruop/channel/etc.
+    # returns the chatId connected to the user/gruop/channel/etc.
     if key < len(users):
         return users[key].id
     else:
         return list(non_user_dict)[key - len(users)]
 
 
-def getChatIdsByDialogs(client, singleChatId = None):
+def get_chat_ids_by_dialogs(client_instance, single_chat_id = None):
 
-    chatIdsList = list()
-    chatIdUsernamesDict = dict()
-    chatIdTitleDict = dict()
-    chatIdFullNameDict = dict()
-    chatIdPhoneNumberDict = dict()
-    deletedChatdIds = list()
+    chat_ids_list = list()
+    chat_id_usernames_dict = dict()
+    chat_id_title_dict = dict()
+    chat_id_full_name_dict = dict()
+    chat_id_phone_number_dict = dict()
+    deleted_chat_ids = list()
 
-    for dialog in client.iter_dialogs():
-        #If user hasn't specified a particular user to extrat or if he wants to extract a particular chat
-        if (singleChatId is None) or (singleChatId is not None and dialog.chat.id == singleChatId):
-            if not dialog.chat.username is None:
+    for dialog in client_instance.iter_dialogs():
+        # If user hasn't specified a particular user to extrat or if he wants to extract a particular chat
+        if (single_chat_id is None) or (single_chat_id is not None and dialog.chat.id == single_chat_id):
+            if dialog.chat.username is not None:
                 #DEBUG: TO AVOID CHANNELS COMMENT NEXT LINE ADD if dialog.chat.title is None:
-                chatIdsList.append(dialog.chat.id)
-                chatIdUsernamesDict[dialog.chat.id] = dialog.chat.username
+                chat_ids_list.append(dialog.chat.id)
+                chat_id_usernames_dict[dialog.chat.id] = dialog.chat.username
                 # Tries to get the person phone number retrieving his id
                 ids = list()
                 ids.append(dialog.chat.id)
-                userObjsList = client.get_users(ids)
-                if userObjsList and userObjsList[0].phone_number is not None:
-                    chatIdPhoneNumberDict[dialog.chat.id] = userObjsList[0].phone_number
+                user_obj_list = client_instance.get_users(ids)
+                if user_obj_list and user_obj_list[0].phone_number is not None:
+                    chat_id_phone_number_dict[dialog.chat.id] = user_obj_list[0].phone_number
 
                 print("\n[getChatIdsByDialogs] Retrieved chat with username: {}".format(dialog.chat.username))
 
-            if not dialog.chat.title is None:
+            if dialog.chat.title is not None:
                 #DEBUG: TO AVOID CHANNELS COMMENT NEXT LINE
-                chatIdsList.append(dialog.chat.id)
-                chatIdTitleDict[dialog.chat.id] = dialog.chat.title
+                chat_ids_list.append(dialog.chat.id)
+                chat_id_title_dict[dialog.chat.id] = dialog.chat.title
                 print("\n[getChatIdsByDialogs] Retrieved chat with title: {}".format(dialog.chat.title))
 
-            if not dialog.chat.first_name is None:
+            if dialog.chat.first_name is not None:
                 if not dialog.chat.id in chatIdsList:
-                    chatIdsList.append(dialog.chat.id)
+                    chat_ids_list.append(dialog.chat.id)
                 # Identify the full name of the person who the chat relates to
-                formattedName = dialog.chat.first_name
+                formatted_name = dialog.chat.first_name
                 if not dialog.chat.last_name is None:
-                    formattedName = formattedName + " " + dialog.chat.last_name
-                chatIdFullNameDict[dialog.chat.id] = formattedName
+                    formatted_name = formatted_name + " " + dialog.chat.last_name
+                chat_id_full_name_dict[dialog.chat.id] = formatted_name
                 # Tries to get the person phone number retrieving his id
                 ids = list()
                 ids.append(dialog.chat.id)
-                userObjsList = client.get_users(ids)
-                if userObjsList and userObjsList[0].phone_number is not None:
-                    chatIdPhoneNumberDict[dialog.chat.id] = userObjsList[0].phone_number
+                user_obj_list = client_instance.get_users(ids)
+                if user_obj_list and user_obj_list[0].phone_number is not None:
+                    chat_id_phone_number_dict[dialog.chat.id] = user_obj_list[0].phone_number
 
             if dialog.chat.username is None and dialog.chat.title is None and dialog.chat.first_name is None:
-                print("\n[getChatIdsByDialogs] No info found for chat {}; it means the other user deleted his account".format(dialog.chat.id))
-                deletedChatdIds.append(dialog.chat.id)
+                print("\n[getChatIdsByDialogs] No info found for chat {}; "
+                      "it means the other user deleted his account".format(dialog.chat.id))
+                deleted_chat_ids.append(dialog.chat.id)
 
-    return chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict
+    return chat_ids_list, chat_id_usernames_dict, chat_id_title_dict, \
+           chat_id_full_name_dict, deleted_chat_ids, chat_id_phone_number_dict
 
 
 """
 Metodo che si occupa della scrittura su file di tutte le chat comprese quelle eliminate
 Viene generato un file per ogni chat in modo dinamico
 """
-def writeAllChatsLogsFile(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict):
+
+
+def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_dict, chat_id_title_dict,
+                              chat_id_full_name_dict, deleted_chat_ids, chat_id_phone_number_dict):
 
     # Create logs file for every contact on the phone
-    for chatId in chatIdsList:
+    for chat_id in chat_ids_list:
         chat_data_to_log = ""
         header_string = _ALL_CHATS_HEADER_STRING
-        if chatId in chatIdUsernamesDict:
-            chat_data_to_log = chat_data_to_log + "{};".format(chatIdUsernamesDict[chatId])
-        if chatId in chatIdFullNameDict:
-            chat_data_to_log = chat_data_to_log + "{};".format(chatIdFullNameDict[chatId])
-        if chatId in chatIdPhoneNumberDict:
-            chat_data_to_log = chat_data_to_log + "{};".format(chatIdPhoneNumberDict[chatId])
-        if chatId in chatIdTitleDict:
-            chat_data_to_log = chat_data_to_log + "{};".format(chatIdTitleDict[chatId])
+        if chat_id in chat_id_usernames_dict:
+            chat_data_to_log = chat_data_to_log + "{};".format(chat_id_usernames_dict[chat_id])
+        if chat_id in chat_id_full_name_dict:
+            chat_data_to_log = chat_data_to_log + "{};".format(chat_id_full_name_dict[chat_id])
+        if chat_id in chat_id_phone_number_dict:
+            chat_data_to_log = chat_data_to_log + "{};".format(chat_id_phone_number_dict[chat_id])
+        if chat_id in chat_id_title_dict:
+            chat_data_to_log = chat_data_to_log + "{};".format(chat_id_title_dict[chat_id])
 
         # creating file name
         file_name = ""
         # directory_name = ""
-        if chatId in chatIdUsernamesDict:
-            file_name = file_name + "{}_".format(chatIdUsernamesDict[chatId])
-        if chatId in chatIdTitleDict:
-            file_name = file_name + "{}_".format(chatIdTitleDict[chatId])
-        if chatId in chatIdFullNameDict:
-            file_name = file_name + "{}_".format(chatIdFullNameDict[chatId])
-            directory_name = chatIdFullNameDict[chatId]
-        if chatId in chatIdPhoneNumberDict:
-            file_name = file_name + "{}_".format(chatIdPhoneNumberDict[chatId])
-        # Removing illegal characters from file name
+        if chat_id in chat_id_usernames_dict:
+            file_name = file_name + "{}_".format(chat_id_usernames_dict[chat_id])
+        if chat_id in chat_id_title_dict:
+            file_name = file_name + "{}_".format(chat_id_title_dict[chat_id])
+        if chat_id in chat_id_full_name_dict:
+            file_name = file_name + "{}_".format(chat_id_full_name_dict[chat_id])
+            directory_name = chat_id_full_name_dict[chat_id]
+        if chat_id in chat_id_phone_number_dict:
+            file_name = file_name + "{}_".format(chat_id_phone_number_dict[chat_id])
+        # Removing illegal characters from file name name
         file_name = (file_name.replace("\\", "_")).replace("/", "_")
         directory_name = file_name
         file_name = file_name + ".csv"
@@ -335,23 +345,23 @@ def writeAllChatsLogsFile(client, chatIdsList, chatIdUsernamesDict, chatIdTitleD
         print("[writeAllChatsLogsFile] Processing chat with {}".format(chat_data_to_log))
         with open(file_name, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
             file.write(header_string)
-            for msgLog in getChatLogsByIdentifier(client, chatId, directory_name):
+            for msgLog in get_chat_logs_by_identifier(client_instance, chat_id, directory_name):
                 file.write("\n" + msgLog)
 
-    #if there are deleted chats
-    if len(deletedChatdIds) != 0:
+    # if there are deleted chats
+    if len(deleted_chat_ids) != 0:
         # Logs about deleted chats
         print("[writeAllChatsLogsFile] Processing deleted chats \n\n")
-        for chatId in deletedChatdIds:
+        for chat_id in deleted_chat_ids:
             header_string = "ID"
-            directory_name = str(chatId) + "_deleted"
-            file_name = str(chatId) + "_deleted.csv"
+            directory_name = str(chat_id) + "_deleted"
+            file_name = str(chat_id) + "_deleted.csv"
             file_name = _LOG_PATH + _OS_SEP + file_name
 
-            print("[writeAllChatsLogsFile] Processing " + str(chatId) + " deleted chat")
+            print("[writeAllChatsLogsFile] Processing " + str(chat_id) + " deleted chat")
             with open(file_name, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
                 file.write(header_string)
-                for msgLog in getChatLogsByIdentifier(client, chatId, directory_name):
+                for msgLog in get_chat_logs_by_identifier(client_instance, chat_id, directory_name):
                     file.write("\n" + msgLog)
 
 
@@ -371,13 +381,13 @@ if __name__ == "__main__":
         if int(type_of_extraction) == 1:
             # Get a particular chat decide by the user
             chatId = menu_get_contact(client)
-            chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict = getChatIdsByDialogs(client, chatId)
-            writeAllChatsLogsFile(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict)
+            chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(client, chatId)
+            write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict)
 
         elif int(type_of_extraction) == 2:
             # Get chats details by dialogs
-            chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict = getChatIdsByDialogs(client)
-            writeAllChatsLogsFile(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict)
+            chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(client)
+            write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict)
 
         else:
             print("Please select a correct number.")
