@@ -17,7 +17,7 @@ class Photo:
         return_string = "id = {}, width = {}, height = {}, size = {}, date = {}".format(self.id, self.width,
                                                                                         self.height, self.size,
                                                                                         self.date)
-        return_string = return_string.append(", TTL(s) = {}".format(self.ttl_seconds)) if self.ttl_seconds is not "" \
+        return_string = return_string.append(", TTL(s) = {}".format(self.ttl_seconds)) if self.ttl_seconds != "" \
             else return_string
 
         return return_string
@@ -41,16 +41,16 @@ class Audio:
         return_string = "id = {}, duration = {}".format(self.id, self.duration)
         # Optional fields
         return_string = return_string.append(", File name = {}".format(self.file_name)) \
-            if self.file_name is not "" else return_string
+            if self.file_name != "" else return_string
         return_string = return_string.append(", Mime type = {}".format(self.mime_type)) \
-            if self.mime_type is not "" else return_string
+            if self.mime_type != "" else return_string
         return_string = return_string.append(", Size = {}".format(self.size)) \
-            if self.size is not "" else return_string
+            if self.size != "" else return_string
         return_string = return_string.append(", Date = {}".format(self.date)) \
-            if self.date is not "" else return_string
+            if self.date != "" else return_string
         return_string = return_string.append(", Performer = {}".format(self.performer)) \
-            if self.performer is not "" else return_string
+            if self.performer != "" else return_string
         return_string = return_string.append(", Title = {}".format(self.title)) \
-            if self.title is not "" else return_string
+            if self.title != "" else return_string
 
         return return_string
