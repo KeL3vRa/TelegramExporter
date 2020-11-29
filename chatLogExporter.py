@@ -6,7 +6,7 @@ import time
 import sys
 import os
 import json
-
+import shutil
 
 _FORMAT_LOG_STRING = "{:20};{:19};{};{}"
 _TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
@@ -364,6 +364,21 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
                 for msgLog in get_chat_logs_by_identifier(client_instance, chat_id, directory_name):
                     file.write("\n" + msgLog)
 
+##Cleans extraction folder
+def clean_extraction_folder():
+    folder = _LOG_PATH
+    print("\n[clean_extraction_folder] Removing files from folder " + folder)
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
+    print("[clean_extraction_folder] Folder cleaned successfully\n")
+
 
 if __name__ == "__main__":
 
@@ -377,6 +392,10 @@ if __name__ == "__main__":
         type_of_extraction = input("Enter: \n1 to search for a single user "
                                    "        \n2 to extract all chats"
                                    "        \nPlease enter your choice: ")
+
+        clean_folder = input("Do you want to clean extraction folder from previous extractions files? (y/N): ")
+        if clean_folder == 'y':
+            clean_extraction_folder()
 
         if int(type_of_extraction) == 1:
             # Get a particular chat decide by the user
