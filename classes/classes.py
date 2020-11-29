@@ -17,7 +17,7 @@ class Photo:
         return_string = "id = {}, width = {}, height = {}, size = {}, date = {}".format(self.id, self.width,
                                                                                         self.height, self.size,
                                                                                         self.date)
-        return_string = return_string.append(", TTL(s) = {}".format(self.ttl_seconds)) if self.ttl_seconds != "" \
+        return_string = return_string + ", TTL(s) = {}".format(self.ttl_seconds) if self.ttl_seconds != "" \
             else return_string
 
         return return_string
@@ -40,17 +40,17 @@ class Audio:
     def to_string(self):
         return_string = "id = {}, duration = {}".format(self.id, self.duration)
         # Optional fields
-        return_string = return_string.append(", File name = {}".format(self.file_name)) \
+        return_string = return_string + ", File name = {}".format(self.file_name) \
             if self.file_name != "" else return_string
-        return_string = return_string.append(", Mime type = {}".format(self.mime_type)) \
+        return_string = return_string + ", Mime type = {}".format(self.mime_type) \
             if self.mime_type != "" else return_string
-        return_string = return_string.append(", Size = {}".format(self.size)) \
+        return_string = return_string + ", Size = {}".format(self.size) \
             if self.size != "" else return_string
-        return_string = return_string.append(", Date = {}".format(self.date)) \
+        return_string = return_string + ", Date = {}".format(self.date) \
             if self.date != "" else return_string
-        return_string = return_string.append(", Performer = {}".format(self.performer)) \
+        return_string = return_string + ", Performer = {}".format(self.performer) \
             if self.performer != "" else return_string
-        return_string = return_string.append(", Title = {}".format(self.title)) \
+        return_string = return_string + ", Title = {}".format(self.title) \
             if self.title != "" else return_string
 
         return return_string
@@ -70,13 +70,13 @@ class Document:
     def to_string(self):
         return_string = "id = {}".format(self.id)
         # Optional fields
-        return_string = return_string.append(", File name = {}".format(self.file_name)) \
+        return_string = return_string + ", File name = {}".format(self.file_name) \
             if self.file_name != "" else return_string
-        return_string = return_string.append(", Mime type = {}".format(self.mime_type)) \
+        return_string = return_string + ", Mime type = {}".format(self.mime_type) \
             if self.mime_type != "" else return_string
-        return_string = return_string.append(", Size = {}".format(self.size)) \
+        return_string = return_string + ", Size = {}".format(self.size) \
             if self.size != "" else return_string
-        return_string = return_string.append(", Date = {}".format(self.date)) \
+        return_string = return_string + ", Date = {}".format(self.date) \
             if self.date != "" else return_string
 
         return return_string
@@ -102,17 +102,17 @@ class Sticker:
         return_string = "id = {}, width = {}, height = {}, is animated = {}".format(self.id, self.width,
                                                                                     self.height, self.is_animated)
         # Optional fields
-        return_string = return_string.append(", File name = {}".format(self.file_name)) \
+        return_string = return_string + ", File name = {}".format(self.file_name) \
             if self.file_name != "" else return_string
-        return_string = return_string.append(", Mime type = {}".format(self.mime_type)) \
+        return_string = return_string + ", Mime type = {}".format(self.mime_type) \
             if self.mime_type != "" else return_string
-        return_string = return_string.append(", Size = {}".format(self.size)) \
+        return_string = return_string + ", Size = {}".format(self.size) \
             if self.size != "" else return_string
-        return_string = return_string.append(", Date = {}".format(self.date)) \
+        return_string = return_string + ", Date = {}".format(self.date) \
             if self.date != "" else return_string
-        return_string = return_string.append(", Correspondent emoji = {}".format(self.emoji)) \
+        return_string = return_string + ", Correspondent emoji = {}".format(self.emoji) \
             if self.emoji != "" else return_string
-        return_string = return_string.append(", Sticker set's name = {}".format(self.set_name)) \
+        return_string = return_string + ", Sticker set's name = {}".format(self.set_name) \
             if self.set_name != "" else return_string
 
         return return_string
@@ -136,13 +136,13 @@ class Animation:
         return_string = "id = {}, width = {}, height = {}, duration = {}".format(self.id, self.width,
                                                                                  self.height, self.duration)
         # Optional fields
-        return_string = return_string.append(", File name = {}".format(self.file_name)) \
+        return_string = return_string + ", File name = {}".format(self.file_name) \
             if self.file_name != "" else return_string
-        return_string = return_string.append(", Mime type = {}".format(self.mime_type)) \
+        return_string = return_string + ", Mime type = {}".format(self.mime_type) \
             if self.mime_type != "" else return_string
-        return_string = return_string.append(", Size = {}".format(self.size)) \
+        return_string = return_string + ", Size = {}".format(self.size) \
             if self.size != "" else return_string
-        return_string = return_string.append(", Date = {}".format(self.date)) \
+        return_string = return_string + ", Date = {}".format(self.date) \
             if self.date != "" else return_string
 
         return return_string
@@ -164,7 +164,7 @@ class Game:
                         "description = {}, photo meta-data = {}".format(self.id, self.title, self.short_name,
                                                                         self.description, Photo(self.photo).to_string())
         # Optional fields
-        return_string = return_string.append(", Animation = {}".format(Animation(self.animation).to_string())) \
+        return_string = return_string + ", Animation = {}".format(Animation(self.animation).to_string()) \
             if self.animation != "" else return_string
 
         return return_string
@@ -191,17 +191,17 @@ class Video:
         return_string = "id = {}, width = {}, height = {}, duration = {}".format(self.id, self.width,
                                                                                  self.height, self.duration)
         # Optional fields
-        return_string = return_string.append(", File name = {}".format(self.file_name)) \
+        return_string = return_string + ", File name = {}".format(self.file_name) \
             if self.file_name != "" else return_string
-        return_string = return_string.append(", Mime type = {}".format(self.mime_type)) \
+        return_string = return_string + ", Mime type = {}".format(self.mime_type) \
             if self.mime_type != "" else return_string
-        return_string = return_string.append(", Supports streaming = {}".format(self.supports_streaming)) \
+        return_string = return_string + ", Supports streaming = {}".format(self.supports_streaming) \
             if self.supports_streaming != "" else return_string
-        return_string = return_string.append(", Size = {}".format(self.size)) \
+        return_string = return_string + ", Size = {}".format(self.size) \
             if self.size != "" else return_string
-        return_string = return_string.append(", Date = {}".format(self.date)) \
+        return_string = return_string + ", Date = {}".format(self.date) \
             if self.date != "" else return_string
-        return_string = return_string.append(", TTL(s)= {}".format(self.ttl_seconds)) \
+        return_string = return_string + ", TTL(s)= {}".format(self.ttl_seconds) \
             if self.ttl_seconds != "" else return_string
 
         return return_string
@@ -221,11 +221,11 @@ class Voice:
     def to_string(self):
         return_string = "id = {}, duration = {}".format(self.id, self.duration)
         # Optional fields
-        return_string = return_string.append(", Mime type = {}".format(self.mime_type)) \
+        return_string = return_string + ", Mime type = {}".format(self.mime_type) \
             if self.mime_type != "" else return_string
-        return_string = return_string.append(", Size = {}".format(self.size)) \
+        return_string = return_string + ", Size = {}".format(self.size) \
             if self.size != "" else return_string
-        return_string = return_string.append(", Date = {}".format(self.date)) \
+        return_string = return_string + ", Date = {}".format(self.date) \
             if self.date != "" else return_string
 
         return return_string
@@ -246,11 +246,11 @@ class Videonote:
     def to_string(self):
         return_string = "id = {}, length = {}, duration = {}".format(self.id, self.length, self.duration)
         # Optional fields
-        return_string = return_string.append(", Mime type = {}".format(self.mime_type)) \
+        return_string = return_string + ", Mime type = {}".format(self.mime_type) \
             if self.mime_type != "" else return_string
-        return_string = return_string.append(", Size = {}".format(self.size)) \
+        return_string = return_string + ", Size = {}".format(self.size) \
             if self.size != "" else return_string
-        return_string = return_string.append(", Date = {}".format(self.date)) \
+        return_string = return_string + ", Date = {}".format(self.date) \
             if self.date != "" else return_string
 
         return return_string
@@ -269,11 +269,11 @@ class Contact:
     def to_string(self):
         return_string = "Phone Number = {}, First name = {}".format(self.phone_number, self.first_name)
         # Optional fields
-        return_string = return_string.append(", Last name = {}".format(self.last_name)) \
+        return_string = return_string + ", Last name = {}".format(self.last_name) \
             if self.last_name != "" else return_string
-        return_string = return_string.append(", User Id = {}".format(self.user_id)) \
+        return_string = return_string + ", User Id = {}".format(self.user_id) \
             if self.user_id != "" else return_string
-        return_string = return_string.append(", Vcard = {}".format(self.vcard)) \
+        return_string = return_string + ", Vcard = {}".format(self.vcard) \
             if self.vcard != "" else return_string
 
         return return_string
@@ -304,9 +304,9 @@ class Venue:
         return_string = "Longitude = {}, Title = {}, Address = {}".format(self.longitude, self.title, self.address,
                                                                           self.is_animated)
         # Optional fields
-        return_string = return_string.append(", Foursquare id = {}".format(self.foursquare_id)) \
+        return_string = return_string + ", Foursquare id = {}".format(self.foursquare_id) \
             if self.foursquare_id != "" else return_string
-        return_string = return_string.append(", Foursquare type = {}".format(self.foursquare_type)) \
+        return_string = return_string + ", Foursquare type = {}".format(self.foursquare_type) \
             if self.foursquare_type != "" else return_string
 
         return return_string
@@ -338,35 +338,35 @@ class WebPage:
     def to_string(self):
         return_string = "id = {}, URL = {}, Displayed URL = {}".format(self.id, self.url, self.display_url)
         # Optional fields
-        return_string = return_string.append(", Type = {}".format(self.type)) \
+        return_string = return_string + ", Type = {}".format(self.type) \
             if self.type != "" else return_string
-        return_string = return_string.append(", Site name = {}".format(self.site_name)) \
+        return_string = return_string + ", Site name = {}".format(self.site_name) \
             if self.site_name != "" else return_string
-        return_string = return_string.append(", Title = {}".format(self.title)) \
+        return_string = return_string + ", Title = {}".format(self.title) \
             if self.title != "" else return_string
-        return_string = return_string.append(", Description = {}".format(self.description)) \
+        return_string = return_string + ", Description = {}".format(self.description) \
             if self.description != "" else return_string
-        return_string = return_string.append(", Audio meta-data = {}".format(Audio(self.audio).to_string())) \
+        return_string = return_string + ", Audio meta-data = {}".format(Audio(self.audio).to_string()) \
             if self.audio != "" else return_string
-        return_string = return_string.append(", Document meta-data = {}".format(Document(self.document).to_string())) \
+        return_string = return_string + ", Document meta-data = {}".format(Document(self.document).to_string()) \
             if self.document != "" else return_string
-        return_string = return_string.append(", Photo meta-data = {}".format(Photo(self.photo).to_string())) \
+        return_string = return_string + ", Photo meta-data = {}".format(Photo(self.photo).to_string()) \
             if self.photo != "" else return_string
-        return_string = return_string.append(", Animation meta-data = {}".format(Animation(self.animation).to_string())) \
+        return_string = return_string + ", Animation meta-data = {}".format(Animation(self.animation).to_string()) \
             if self.animation != "" else return_string
-        return_string = return_string.append(", Video meta-data = {}".format(Video(self.video).to_string())) \
+        return_string = return_string + ", Video meta-data = {}".format(Video(self.video).to_string()) \
             if self.video != "" else return_string
-        return_string = return_string.append(", Embedded URL = {}".format(self.embed_url)) \
+        return_string = return_string + ", Embedded URL = {}".format(self.embed_url) \
             if self.embed_url != "" else return_string
-        return_string = return_string.append(", Embedded type = {}".format(self.embed_type)) \
+        return_string = return_string + ", Embedded type = {}".format(self.embed_type) \
             if self.embed_type != "" else return_string
-        return_string = return_string.append(", Embedded width = {}".format(self.embed_width)) \
+        return_string = return_string + ", Embedded width = {}".format(self.embed_width) \
             if self.embed_width != "" else return_string
-        return_string = return_string.append(", Embedded height = {}".format(self.embed_height)) \
+        return_string = return_string + ", Embedded height = {}".format(self.embed_height) \
             if self.embed_height != "" else return_string
-        return_string = return_string.append(", Duration = {}".format(self.duration)) \
+        return_string = return_string + ", Duration = {}".format(self.duration) \
             if self.duration != "" else return_string
-        return_string = return_string.append(", Author = {}".format(self.author)) \
+        return_string = return_string + ", Author = {}".format(self.author) \
             if self.author != "" else return_string
 
         return return_string
@@ -392,13 +392,13 @@ class Poll:
                         "Num of voters = {}, Is closed = {}".format(self.id, self.question, self.options,
                                                                     self.total_voter_count, self.is_closed)
         # Optional fields
-        return_string = return_string.append(", Type = {}".format(self.type)) \
+        return_string = return_string + ", Type = {}".format(self.type) \
             if self.type != "" else return_string
-        return_string = return_string.append(", Is anonymous = {}".format(self.is_anonymous)) \
+        return_string = return_string + ", Is anonymous = {}".format(self.is_anonymous) \
             if self.is_anonymous != "" else return_string
-        return_string = return_string.append(", Allows multiple answers = {}".format(self.allows_multiple_answers)) \
+        return_string = return_string + ", Allows multiple answers = {}".format(self.allows_multiple_answers) \
             if self.allows_multiple_answers != "" else return_string
-        return_string = return_string.append(", Chosen option = {}".format(self.chosen_option)) \
+        return_string = return_string + ", Chosen option = {}".format(self.chosen_option) \
             if self.chosen_option != "" else return_string
 
         return return_string
