@@ -53,8 +53,9 @@ def getChatLogsByIdentifier(client, useridentifier, export_media=0):
                 _formatted_message_date = datetime.utcfromtimestamp(msg.date).strftime(_TIME_FORMAT)
 
                 if msg.text is not None:
-                    formatted_log.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date,
-                                                                   msg.text.replace('\r', ' ').replace('\n', ' '), ""))
+                    log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date,
+                                                         msg.text.replace('\r', ' ').replace('\n', ' '), "")
+                    formatted_log.append(log_line)
                 elif msg.audio is not None:
                     audio_obj = classes.Audio(msg.audio)
                     log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Audio",
