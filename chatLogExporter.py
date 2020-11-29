@@ -239,7 +239,7 @@ def menu_get_contact(client_instance):
             print("[menu_get_contact] Invalid input!!!")
             sys.exit()
 
-    # returns the chatId connected to the user/gruop/channel/etc.
+    # returns the chatId connected to the user/group/channel/etc.
     if key < len(users):
         return users[key].id
     else:
@@ -309,11 +309,10 @@ Viene generato un file per ogni chat in modo dinamico
 
 def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_dict, chat_id_title_dict,
                               chat_id_full_name_dict, deleted_chat_ids, chat_id_phone_number_dict):
-
+    header_string = _ALL_CHATS_HEADER_STRING
     # Create logs file for every contact on the phone
     for chat_id in chat_ids_list:
         chat_data_to_log = ""
-        header_string = _ALL_CHATS_HEADER_STRING
         if chat_id in chat_id_usernames_dict:
             chat_data_to_log = chat_data_to_log + "{};".format(chat_id_usernames_dict[chat_id])
         if chat_id in chat_id_full_name_dict:
@@ -371,7 +370,7 @@ if __name__ == "__main__":
     if not os.path.exists(_LOG_PATH):
         os.makedirs(_LOG_PATH)
 
-    # Create an istance of the pyrogram client
+    # Create an instance of the pyrogram client
     with Client("my_account") as client:
 
         type_of_extraction = input("Enter: \n1 to search for a single user "
@@ -382,12 +381,14 @@ if __name__ == "__main__":
             # Get a particular chat decide by the user
             chatId = menu_get_contact(client)
             chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(client, chatId)
-            write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict)
+            write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict,
+                                      chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict)
 
         elif int(type_of_extraction) == 2:
             # Get chats details by dialogs
             chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(client)
-            write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict)
+            write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict,
+                                      deletedChatIds, chatIdPhoneNumberDict)
 
         else:
             print("Please select a correct number.")
