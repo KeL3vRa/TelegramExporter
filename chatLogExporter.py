@@ -32,7 +32,7 @@ def get_chat_logs_by_identifier(client_instance, user_identifier, directory_name
             chat = list()
             # DEBUG: for message in client.get_history(useridentifier, limit=3): instead of for message in client.iter_history(useridentifier):
             for message in client_instance.get_history(user_identifier, limit=3):
-            #for message in client.iter_history(useridentifier):
+            # for message in client.iter_history(useridentifier):
                 chat.append(message)
             # Iterate over the previously created list
             for msg in chat:
@@ -41,10 +41,10 @@ def get_chat_logs_by_identifier(client_instance, user_identifier, directory_name
                     if msg.media:
                         try:
                             create_path = _LOG_PATH + _OS_SEP + _DOWNLOAD_MEDIA_PATH + _OS_SEP + directory_name + _OS_SEP
-                            print("Downloading attached media...")
+                            print(f"{classes.BColor.OKGREEN}Downloading attached media...{classes.BColor.ENDC}")
                             client_instance.download_media(msg, file_name=create_path)
                         except ValueError:
-                            print("This media is not downloadable.")
+                            print(f"{classes.BColor.FAIL}This media is not downloadable.{classes.BColor.ENDC}")
                 # Creates the log first column
                 if msg.from_user is not None:
                     _sender_username = str(msg.from_user.username)
@@ -146,7 +146,8 @@ def get_chat_logs_by_identifier(client_instance, user_identifier, directory_name
             return formatted_log
 
         except FloodWait:
-            print("[getChatLogsOfUser] FloodWait exception may be fired by Telegram. Waiting 29s")
+            print(f"{classes.BColor.FAIL}[getChatLogsOfUser] FloodWait exception may be fired by Telegram. "
+                  f"Waiting 29s{classes.BColor.ENDC}")
             time.sleep(29)  # this value is specifically provided by Telegram,
             # relating to the particular API calling which caused the exception
 
@@ -167,7 +168,7 @@ def get_contact(client_instance, target=""):
     saved_contact = list()
     non_contact_chat_dict = dict()
 
-    print("\n[get_contact] Retrieving all matching contacts\n")
+    print(f"\n[{classes.BColor.OKBLUE}get_contact{classes.BColor.ENDC}] Retrieving all matching contacts\n")
     # iterate over private chats
     for dialog in client_instance.iter_dialogs():
         # Users and bot are handled in the same way by Telegram
@@ -184,7 +185,8 @@ def get_contact(client_instance, target=""):
             # if user still exists and the user has specified a name to search or if he wants all users
             if (not user["is_deleted"]) and ((target != "" and is_present) or (target == "")):
 
-                print("[get_contact] Person chat match found")
+                print(f"[{classes.BColor.OKBLUE}get_contact{classes.BColor.ENDC}] "
+                      f"Person chat match found{classes.BColor.ENDC}")
                 # add the dictionary to the resulting variable
                 saved_contact.append(user)
 
@@ -193,7 +195,10 @@ def get_contact(client_instance, target=""):
         else:
             title = dialog.chat.title
             if target in title.lower():
-                print("[get_contact] " + dialog.chat.type + " chat match found")
+                print(f"[{classes.BColor.OKGREEN}get_contact{classes.BColor.ENDC}] " +
+                      dialog.chat.type +
+                      " chat match found")
+
                 non_contact_chat_dict[dialog.chat.id] = title
 
     return saved_contact, non_contact_chat_dict
@@ -209,13 +214,15 @@ def menu_get_contact(client_instance):
     users, non_user_dict = get_contact(client_instance, target_name.lower())
 
     if not users and not bool(non_user_dict):
-        print("No contacts found!")
+        print(f"{classes.BColor.FAIL}No contacts found!{classes.BColor.ENDC}")
         sys.exit()
 
     key = 0
     total_contacts_count = len(users) + len(non_user_dict)
     if total_contacts_count > 1:
-        print("\n[menu_get_contact] There are multiple matching chats. Which one do you want to choose?\n")
+        print(f"\n[{classes.BColor.OKBLUE}menu_get_contact{classes.BColor.ENDC}]"
+              f"{classes.BColor.WARNING} There are multiple matching chats. "
+              f"Which one do you want to choose?{classes.BColor.ENDC}\n")
         for user in users:
             chat_data_to_log = ""
             if user.username is not None:
@@ -227,16 +234,16 @@ def menu_get_contact(client_instance):
             if user.phone_number is not None:
                 chat_data_to_log = chat_data_to_log + "Telephone number: {} ".format(user.phone_number)
 
-            print(str(key) + " " + chat_data_to_log)
+            print(f"[{classes.BColor.OKBLUE}*{classes.BColor.ENDC}] " + str(key) + " " + chat_data_to_log)
             key += 1
 
         for chat_id in non_user_dict:
-            print(str(key) + " " + non_user_dict[chat_id])
+            print(f"[{classes.BColor.OKBLUE}*{classes.BColor.ENDC}] " + str(key) + " " + non_user_dict[chat_id])
             key += 1
 
-        key = int(input("[menu_get_contact] Select number please: "))
+        key = int(input(f"[{classes.BColor.OKBLUE}menu_get_contact{classes.BColor.ENDC}] Select number please: "))
         if key < 0 or key > len(users) + len(non_user_dict):
-            print("[menu_get_contact] Invalid input!!!")
+            print(f"{classes.BColor.WARNING}[menu_get_contact] Invalid input!!!{classes.BColor.ENDC}")
             sys.exit()
 
     # returns the chatId connected to the user/gruop/channel/etc.
@@ -246,7 +253,7 @@ def menu_get_contact(client_instance):
         return list(non_user_dict)[key - len(users)]
 
 
-def get_chat_ids_by_dialogs(client_instance, single_chat_id = None):
+def get_chat_ids_by_dialogs(client_instance, single_chat_id=None):
 
     chat_ids_list = list()
     chat_id_usernames_dict = dict()
@@ -259,7 +266,7 @@ def get_chat_ids_by_dialogs(client_instance, single_chat_id = None):
         # If user hasn't specified a particular user to extrat or if he wants to extract a particular chat
         if (single_chat_id is None) or (single_chat_id is not None and dialog.chat.id == single_chat_id):
             if dialog.chat.username is not None:
-                #DEBUG: TO AVOID CHANNELS COMMENT NEXT LINE ADD if dialog.chat.title is None:
+                # DEBUG: TO AVOID CHANNELS COMMENT NEXT LINE ADD if dialog.chat.title is None:
                 chat_ids_list.append(dialog.chat.id)
                 chat_id_usernames_dict[dialog.chat.id] = dialog.chat.username
                 # Tries to get the person phone number retrieving his id
@@ -269,16 +276,18 @@ def get_chat_ids_by_dialogs(client_instance, single_chat_id = None):
                 if user_obj_list and user_obj_list[0].phone_number is not None:
                     chat_id_phone_number_dict[dialog.chat.id] = user_obj_list[0].phone_number
 
-                print("\n[getChatIdsByDialogs] Retrieved chat with username: {}".format(dialog.chat.username))
+                print(f"\n[{classes.BColor.OKBLUE}getChatIdsByDialogs{classes.BColor.ENDC}]" +
+                      " Retrieved chat with username: {}".format(dialog.chat.username))
 
             if dialog.chat.title is not None:
-                #DEBUG: TO AVOID CHANNELS COMMENT NEXT LINE
+                # DEBUG: TO AVOID CHANNELS COMMENT NEXT LINE
                 chat_ids_list.append(dialog.chat.id)
                 chat_id_title_dict[dialog.chat.id] = dialog.chat.title
-                print("\n[getChatIdsByDialogs] Retrieved chat with title: {}".format(dialog.chat.title))
+                print(f"\n[{classes.BColor.OKBLUE}getChatIdsByDialogs{classes.BColor.ENDC}]" +
+                      " Retrieved chat with title: {}".format(dialog.chat.title))
 
             if dialog.chat.first_name is not None:
-                if not dialog.chat.id in chatIdsList:
+                if not dialog.chat.id in chat_ids_list:
                     chat_ids_list.append(dialog.chat.id)
                 # Identify the full name of the person who the chat relates to
                 formatted_name = dialog.chat.first_name
@@ -342,7 +351,8 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
         file_name = _LOG_PATH + _OS_SEP + file_name
 
         # Logs about existing chats
-        print("[writeAllChatsLogsFile] Processing chat with {}".format(chat_data_to_log))
+        print(f"[{classes.BColor.OKBLUE}writeAllChatsLogsFile{classes.BColor.ENDC}]" +
+              " Processing chat with {}".format(chat_data_to_log))
         with open(file_name, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
             file.write(header_string)
             for msgLog in get_chat_logs_by_identifier(client_instance, chat_id, directory_name):
@@ -351,14 +361,15 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
     # if there are deleted chats
     if len(deleted_chat_ids) != 0:
         # Logs about deleted chats
-        print("[writeAllChatsLogsFile] Processing deleted chats \n\n")
+        print(f"[{classes.BColor.OKBLUE}writeAllChatsLogsFile{classes.BColor.ENDC}] Processing deleted chats \n\n")
         for chat_id in deleted_chat_ids:
             header_string = "ID"
             directory_name = str(chat_id) + "_deleted"
             file_name = str(chat_id) + "_deleted.csv"
             file_name = _LOG_PATH + _OS_SEP + file_name
 
-            print("[writeAllChatsLogsFile] Processing " + str(chat_id) + " deleted chat")
+            print(f"[{classes.BColor.OKBLUE}writeAllChatsLogsFile{classes.BColor.ENDC}] Processing "
+                  + str(chat_id) + " deleted chat")
             with open(file_name, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
                 file.write(header_string)
                 for msgLog in get_chat_logs_by_identifier(client_instance, chat_id, directory_name):
@@ -367,7 +378,8 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
 ##Cleans extraction folder
 def clean_extraction_folder():
     folder = _LOG_PATH
-    print("\n[clean_extraction_folder] Removing files from folder " + folder)
+    print(f"\n[{classes.BColor.OKGREEN}clean_extraction_folder{classes.BColor.ENDC}] "
+          f"Removing files from folder " + folder)
     for filename in os.listdir(folder):
         file_path = os.path.join(folder, filename)
         try:
@@ -377,7 +389,7 @@ def clean_extraction_folder():
                 shutil.rmtree(file_path)
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
-    print("[clean_extraction_folder] Folder cleaned successfully\n")
+    print(f"[{classes.BColor.OKGREEN}clean_extraction_folder{classes.BColor.ENDC}] Folder cleaned successfully\n")
 
 
 if __name__ == "__main__":
@@ -388,9 +400,8 @@ if __name__ == "__main__":
 
     # Create an istance of the pyrogram client
     with Client("my_account") as client:
-
-        type_of_extraction = input("Enter: \n1 to search for a single user "
-                                   "        \n2 to extract all chats"
+        type_of_extraction = input("Enter: \n[1] to search for a single user "
+                                   "        \n[2] to extract all chats"
                                    "        \nPlease enter your choice: ")
 
         clean_folder = input("Do you want to clean extraction folder from previous extractions files? (y/N): ")
