@@ -134,8 +134,9 @@ dmypy.json
 #pycharm
 .idea
 
-#extraction folder
+#folder
 extraction/
+media/
 
 #Telegram session file
 *.session

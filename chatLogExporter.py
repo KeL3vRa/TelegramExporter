@@ -10,9 +10,12 @@ from classes import classes
 _FORMAT_LOG_STRING = "{:20};{:19};{};{}"
 _TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 _ALL_CHATS_HEADER_STRING = "SENDER;TIMESTAMP;MESSAGE;DETAILS (OPTIONAL)"
+_OS_SEP = os.sep
 
 # CHATS LOG FILE DESTINATION FOLDER NAME
 _LOG_PATH = "extraction"
+_DOWNLOAD_MEDIA_PATH = "media"
+
 
 # Get the all messages in the chat with a given user
 def getChatLogsByIdentifier(client, useridentifier):
@@ -88,11 +91,61 @@ def getChatLogsByIdentifier(client, useridentifier):
             time.sleep(29) # this value is specifically provided by Telegram, relating to the particular API calling which caused the exception
 
 
+def media_download(client, chat, type_chat=""):
+    """
+    Download the media from the chat.
+    If the type_chat is no "private" the function download media
+    from "bot", "channel", "group" or "supergroup"
+    Args:
+        client: Pyrogram Client, the main means for interacting with Telegram.
+        chat: message from a chat
+        type_chat: "private" if message if from private chat or nothing for "bot", "channel", "group" or "supergroup"
+    """
 
-def get_contact(client, target_name=""):
+    finish_path = ""
+    if type_chat == "private":
+        if type(chat) is list:
+            unique_id_target_chat = chat[0].id
+            get_username_or_tile = chat[0].username
+        else:
+            unique_id_target_chat = chat.id
+            get_username_or_tile = chat.username
+
+        create_path = _DOWNLOAD_MEDIA_PATH + _OS_SEP + get_username_or_tile + _OS_SEP
+    else:
+        get_username_or_tile = chat[list(chat)[0]]
+        unique_id_target_chat = list(chat.keys())[0]
+        create_path = _DOWNLOAD_MEDIA_PATH + _OS_SEP + get_username_or_tile.replace(" ", "") + _OS_SEP
+
+    # DEBUG: messages = client.get_history(unique_id_target_chat) <--- set this for NO LIMIT messages
+    messages = client.get_history(unique_id_target_chat, limit=20)
+
+    for message in messages:
+        if message.media:
+            print("Media is in download...")
+            finish_path = client.download_media(message, file_name=create_path)
+
+    if finish_path == "":
+        print("No media downloaded!")
+    else:
+        print("Media are downloaded into: {}".format(finish_path))
+
+
+def get_contact(client, target=""):
+    """
+    Get the contact from a target or get all contact.
+    The function distinguishes between “private”, “bot”, “group”, “supergroup” or “channel”.
+    Args:
+        client: Pyrogram Client, the main means for interacting with Telegram.
+        target: can be: full name or username or phone
+
+    Returns:
+        saved_contact: contact saved. Can be contain multiple contacts
+        non_contact_chat_dict: contact from “bot”, “group”, “supergroup” or “channel”
+
+    """
     saved_contact = list()
     non_contact_chat_dict = dict()
-    count = 0
 
     print("\n[get_contact] Retrieving all matching contacts\n")
     # iterate over private chats
@@ -104,25 +157,22 @@ def get_contact(client, target_name=""):
             last_name = '' if user["last_name"] is None else str(user["last_name"]).lower()
             phone_number = '' if user["phone_number"] is None else str(user["phone_number"]).lower()
             username = '' if user["username"] is None else str(user["username"]).lower()
+            full_name = first_name + " " + last_name
+            is_present = True if target in full_name or target in username or target in phone_number else False
 
             # if user still exists and the user has specified a name to search or if he wants all users
-            if (not user["is_deleted"]) and ((target_name.lower() != "" and target_name.lower() in [first_name, last_name, phone_number, username, title]) or (target_name == "")):
-                count += 1
+            if (not user["is_deleted"]) and ((target != "" and is_present) or (target == "")):
 
                 print("[get_contact] Person chat match found")
                 # add the dictionary to the resulting variable
                 saved_contact.append(user)
 
-        elif dialog.chat.type == 'channel':
+        # in this case, if dialog.chat.type is not private
+        # else is "bot" or "group", "supergroup" or "channel
+        else:
             title = dialog.chat.title
-            if (target_name.lower() in title.lower()):
-                print("[get_contact] Channel chat match found")
-                non_contact_chat_dict[dialog.chat.id] = title
-
-        elif dialog.chat.type == 'group':  # TODO aggiungere supergruppo e bot
-            title = dialog.chat.title
-            if (target_name.lower() in title.lower()):
-                print("[get_contact] Group chat match found")
+            if target in title.lower():
+                print("[get_contact] " + dialog.chat.type + " chat match found")
                 non_contact_chat_dict[dialog.chat.id] = title
 
     return saved_contact, non_contact_chat_dict
@@ -134,7 +184,7 @@ def menu_get_contact(client):
                         "\n- Phone number (in this case remember to indicate also the phone prefix): "
                         "\n- Or press enter if you want to see a list of the chats"
                         "\n Please enter your decision: ")
-    users, non_user_dict = get_contact(client, target_name)
+    users, non_user_dict = get_contact(client, target_name.lower())
 
     if not users and not bool(non_user_dict):
         print("No contacts found!")
@@ -164,17 +214,16 @@ def menu_get_contact(client):
 
         key = int(input("[menu_get_contact] Select number please: "))
 
-        if(key < 0 or key > len(users) + len(non_user_dict)):
+        if key <= 0 or key > len(users) + len(non_user_dict):
             print("[menu_get_contact] Invalid input!!!")
             sys.exit()
 
-    if(key < len(users)):
+    if key < len(users):
         # here we are returning a precise contact (from users list) and an empty dictionary (non_user_dict)
         return users[key], None
     else:
         # here we are returning a precise non-person chat (in the form id-name) and an empty list (users)
         return users, {list(non_user_dict)[key - len(users)] : non_user_dict[list(non_user_dict)[key - len(users)]]}
-
 
 
 def getChatIdsByDialogs(client):
@@ -260,7 +309,7 @@ def writeAllChatsLogsFile(client, chatIdsList, chatIdUsernamesDict, chatIdTitleD
         # Removing illegal characters from file name
         file_name = (file_name.replace("\\", "_")).replace("/", "_")
         file_name = file_name + ".csv"
-        file_name = _LOG_PATH + os.sep + file_name
+        file_name = _LOG_PATH + _OS_SEP + file_name
 
         # Logs about existing chats
         print("[writeAllChatsLogsFile] Processing chat with {}".format(chat_data_to_log))
@@ -274,7 +323,7 @@ def writeAllChatsLogsFile(client, chatIdsList, chatIdUsernamesDict, chatIdTitleD
     for chatId in deletedChatdIds:
         header_string = "ID"
         file_name = str(chatId) + "_deleted.csv"
-        file_name = _LOG_PATH + os.sep + file_name
+        file_name = _LOG_PATH + _OS_SEP + file_name
 
         print("[writeAllChatsLogsFile] Processing " + str(chatId) + " deleted chat")
         with open(file_name, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
@@ -312,7 +361,7 @@ def writeSingleUserChatsLogsFile(client, userObject):
     if userObject.phone_number is not None:
         fileName = fileName + "{}_".format(userObject.phone_number)
     fileName = fileName + ".txt"
-    fileName = _LOG_PATH + os.sep + fileName
+    fileName = _LOG_PATH + _OS_SEP + fileName
 
     print("\n[writeSingleUserChatsLogsFile] Processing " + chatDataToLog + " contact")
     with open(fileName, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
@@ -336,7 +385,7 @@ def writeSingleNonPersonChatLogsFile(client, nonPersonDict):
     fileName = ""
     fileName = fileName + "{}_".format(nonPersonDict[dictKey])
     fileName = fileName + ".txt"
-    fileName = _LOG_PATH + os.sep + fileName
+    fileName = _LOG_PATH + _OS_SEP + fileName
 
     print("\n[writeSingleNonPersonChatLogsFile] Processing " + chatDataToLog + " chat")
     with open(fileName, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
@@ -355,14 +404,24 @@ if __name__ == "__main__":
     # Create an istance of the pyrogram client
     with Client("my_account") as client:
 
-        type_of_extraction = input("Enter: \n1 to search for a single user \n2 to extract all chats: \n")
+        type_of_extraction = input("Enter: \n1 to search for a single user "
+                                   "        \n2 to extract all chats "
+                                   "        \n3 to download media \n")
         if int(type_of_extraction) == 1:
             chatIdNameDict, nonPersonChatDict = menu_get_contact(client)
             if bool(chatIdNameDict):
                 writeSingleUserChatsLogsFile(client, chatIdNameDict)
             if bool(nonPersonChatDict):
                 writeSingleNonPersonChatLogsFile(client, nonPersonChatDict)
-        else:
+        elif int(type_of_extraction) == 2:
             # Get chats details by dialogs
             chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict = getChatIdsByDialogs(client)
             writeAllChatsLogsFile(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict)
+        elif int(type_of_extraction) == 3:
+            chatIdNameDict, nonPersonChatDict = menu_get_contact(client)
+            if bool(chatIdNameDict):
+                media_download(client, chatIdNameDict, type_chat="private")
+            if bool(nonPersonChatDict):
+                media_download(client, nonPersonChatDict)
+        else:
+            print("Please select a correct number.")
