@@ -22,7 +22,7 @@ def getChatLogsByIdentifier(client, useridentifier):
 
     while True:
         try:
-            formattedLog = list()
+            formatted_log = list()
 
             # Create a list with ALL messages exchanged with userIdentifier
             chat = list()
@@ -33,58 +33,98 @@ def getChatLogsByIdentifier(client, useridentifier):
             # Iterate over the previously created list
             for msg in chat:
 
-                if not msg.from_user is None:
+                if msg.from_user is not None:
                     _sender_username = str(msg.from_user.username)
                 else:
                     _sender_username = "Channel message"
                 _formatted_message_date = datetime.utcfromtimestamp(msg.date).strftime(_TIME_FORMAT)
 
                 if msg.text is not None:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, msg.text.replace('\r', ' ').replace('\n', ' '), ""))
-                elif not msg.audio is None:
+                    formatted_log.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, msg.text.replace('\r', ' ').replace('\n', ' '), ""))
+                elif msg.audio is not None:
                     audio_obj = classes.Audio(msg.audio)
                     log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Audio",
                                                          audio_obj.to_string())
-                    formattedLog.append(log_line)
-                elif not msg.document is None:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Document", ""))
+                    formatted_log.append(log_line)
+                elif msg.document is not None:
+                    doc_obj = classes.Document(msg.document)
+                    log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Document",
+                                                         doc_obj.to_string())
+                    formatted_log.append(log_line)
                 elif msg.photo is not None:
                     photo_obj = classes.Photo(msg.photo)
-                    log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Photo", photo_obj.to_string())
-                    formattedLog.append(log_line)
+                    log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Photo",
+                                                         photo_obj.to_string())
+                    formatted_log.append(log_line)
                 elif msg.sticker is not None:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Sticker", ""))
+                    sticker_obj = classes.Sticker(msg.sticker)
+                    log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Sticker",
+                                                         sticker_obj.to_string())
+                    formatted_log.append(log_line)
                 elif msg.animation is not None:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Animation", ""))
+                    animation_obj = classes.Animation(msg.animation)
+                    log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Animation",
+                                                         animation_obj.to_string())
+                    formatted_log.append(log_line)
                 elif msg.game is not None:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Game", ""))
+                    game_obj = classes.Game(msg.game)
+                    log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Game",
+                                                         game_obj.to_string())
+                    formatted_log.append(log_line)
                 elif msg.video is not None:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Video", ""))
+                    video_obj = classes.Video(msg.video)
+                    log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Video",
+                                                         video_obj.to_string())
+                    formatted_log.append(log_line)
                 elif msg.voice is not None:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Voice message", ""))
+                    voice_obj = classes.Voice(msg.voice)
+                    log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Voice message",
+                                                         voice_obj.to_string())
+                    formatted_log.append(log_line)
                 elif msg.video_note is not None:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Video note", ""))
+                    videonote_obj = classes.Videonote(msg.video_note)
+                    log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Video note",
+                                                         videonote_obj.to_string())
+                    formatted_log.append(log_line)
                 elif msg.contact is not None:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Contact", ""))
+                    contact_obj = classes.Contact(msg.contact)
+                    log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Contact",
+                                                         contact_obj.to_string())
+                    formatted_log.append(log_line)
                 elif msg.location is not None:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Location", ""))
+                    location_obj = classes.Location(msg.location)
+                    log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Location",
+                                                         location_obj.to_string())
+                    formatted_log.append(log_line)
                 elif msg.venue is not None:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Venue", ""))
+                    venue_obj = classes.Venue(msg.venue)
+                    log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Venue",
+                                                         venue_obj.to_string())
+                    formatted_log.append(log_line)
                 elif msg.web_page is not None:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Web page", ""))
+                    web_page_obj = classes.WebPage(msg.web_page)
+                    log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Web page",
+                                                         web_page_obj.to_string())
+                    formatted_log.append(log_line)
                 elif msg.poll is not None:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Poll", ""))
+                    poll_obj = classes.Poll(msg.poll)
+                    log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Poll",
+                                                         poll_obj.to_string())
+                    formatted_log.append(log_line)
                 elif msg.dice is not None:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Dice", ""))
+                    dice_obj = classes.Dice(msg.dice)
+                    log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Dice",
+                                                         dice_obj.to_string())
+                    formatted_log.append(log_line)
                 elif msg.service is not None:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Telegram service message", ""))
+                    formatted_log.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Telegram service message", ""))
                 elif msg.empty is not None:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Message was deleted", ""))
+                    formatted_log.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Message was deleted", ""))
                 elif msg.caption is not None:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Caption", ""))
+                    formatted_log.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Caption", msg.caption))
                 else:
-                    formattedLog.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Not possible to find the type of message", ""))
-            return formattedLog
+                    formatted_log.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Not possible to find the type of message", ""))
+            return formatted_log
 
         except FloodWait:
             print("[getChatLogsOfUser] FloodWait exception may be fired by Telegram. Waiting 29s")
