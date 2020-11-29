@@ -1,10 +1,11 @@
 from pyrogram import Client
 from pyrogram.errors import FloodWait
 from datetime import datetime
+from classes import classes
 import time
 import sys
 import os
-from classes import classes
+import json
 
 
 _FORMAT_LOG_STRING = "{:20};{:19};{};{}"
@@ -18,7 +19,10 @@ _DOWNLOAD_MEDIA_PATH = "media"
 
 
 # Get the all messages in the chat with a given user
-def getChatLogsByIdentifier(client, useridentifier):
+def getChatLogsByIdentifier(client, useridentifier, export_media=0):
+    json_config = open("configuration.json", "r")
+    load_json = json.load(json_config)
+    export_media = load_json["export_media"]
 
     while True:
         try:
@@ -32,7 +36,16 @@ def getChatLogsByIdentifier(client, useridentifier):
                 chat.append(message)
             # Iterate over the previously created list
             for msg in chat:
-
+                # export media if JSON is 1
+                if export_media == 1:
+                    if msg.media:
+                        try:
+                            create_path = _DOWNLOAD_MEDIA_PATH + _OS_SEP + str(useridentifier) + _OS_SEP
+                            print("Media are downloaded...")
+                            client.download_media(msg, file_name=create_path)
+                        except ValueError:
+                            print("This media is not downloadable.")
+                # Creates the log first column
                 if msg.from_user is not None:
                     _sender_username = str(msg.from_user.username)
                 else:
@@ -40,7 +53,8 @@ def getChatLogsByIdentifier(client, useridentifier):
                 _formatted_message_date = datetime.utcfromtimestamp(msg.date).strftime(_TIME_FORMAT)
 
                 if msg.text is not None:
-                    formatted_log.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, msg.text.replace('\r', ' ').replace('\n', ' '), ""))
+                    formatted_log.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date,
+                                                                   msg.text.replace('\r', ' ').replace('\n', ' '), ""))
                 elif msg.audio is not None:
                     audio_obj = classes.Audio(msg.audio)
                     log_line = _FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date, "Audio",
@@ -129,46 +143,6 @@ def getChatLogsByIdentifier(client, useridentifier):
         except FloodWait:
             print("[getChatLogsOfUser] FloodWait exception may be fired by Telegram. Waiting 29s")
             time.sleep(29) # this value is specifically provided by Telegram, relating to the particular API calling which caused the exception
-
-
-def media_download(client, chat, type_chat=""):
-    """
-    Download the media from the chat.
-    If the type_chat is no "private" the function download media
-    from "bot", "channel", "group" or "supergroup"
-    Args:
-        client: Pyrogram Client, the main means for interacting with Telegram.
-        chat: message from a chat
-        type_chat: "private" if message if from private chat or nothing for "bot", "channel", "group" or "supergroup"
-    """
-
-    finish_path = ""
-    if type_chat == "private":
-        if type(chat) is list:
-            unique_id_target_chat = chat[0].id
-            get_username_or_tile = chat[0].username
-        else:
-            unique_id_target_chat = chat.id
-            get_username_or_tile = chat.username
-
-        create_path = _DOWNLOAD_MEDIA_PATH + _OS_SEP + get_username_or_tile + _OS_SEP
-    else:
-        get_username_or_tile = chat[list(chat)[0]]
-        unique_id_target_chat = list(chat.keys())[0]
-        create_path = _DOWNLOAD_MEDIA_PATH + _OS_SEP + get_username_or_tile.replace(" ", "") + _OS_SEP
-
-    # DEBUG: messages = client.get_history(unique_id_target_chat) <--- set this for NO LIMIT messages
-    messages = client.get_history(unique_id_target_chat, limit=20)
-
-    for message in messages:
-        if message.media:
-            print("Media is in download...")
-            finish_path = client.download_media(message, file_name=create_path)
-
-    if finish_path == "":
-        print("No media downloaded!")
-    else:
-        print("Media are downloaded into: {}".format(finish_path))
 
 
 def get_contact(client, target=""):
@@ -446,8 +420,7 @@ if __name__ == "__main__":
     with Client("my_account") as client:
 
         type_of_extraction = input("Enter: \n1 to search for a single user "
-                                   "        \n2 to extract all chats "
-                                   "        \n3 to download media \n")
+                                   "        \n2 to extract all chats\n")
         if int(type_of_extraction) == 1:
             chatIdNameDict, nonPersonChatDict = menu_get_contact(client)
             if bool(chatIdNameDict):
@@ -458,11 +431,5 @@ if __name__ == "__main__":
             # Get chats details by dialogs
             chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict = getChatIdsByDialogs(client)
             writeAllChatsLogsFile(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatdIds, chatIdPhoneNumberDict)
-        elif int(type_of_extraction) == 3:
-            chatIdNameDict, nonPersonChatDict = menu_get_contact(client)
-            if bool(chatIdNameDict):
-                media_download(client, chatIdNameDict, type_chat="private")
-            if bool(nonPersonChatDict):
-                media_download(client, nonPersonChatDict)
         else:
             print("Please select a correct number.")
