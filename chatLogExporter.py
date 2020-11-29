@@ -150,7 +150,8 @@ def get_contact(client, target=""):
     print("\n[get_contact] Retrieving all matching contacts\n")
     # iterate over private chats
     for dialog in client.iter_dialogs():
-        if dialog.chat.type == 'private':
+        # Users and bot are handled in the same way by Telegram
+        if dialog.chat.type == 'private' or dialog.chat.type == 'bot':
             user = client.get_users(dialog.chat.id)
 
             first_name = '' if user["first_name"] is None else str(user["first_name"]).lower()
@@ -168,7 +169,7 @@ def get_contact(client, target=""):
                 saved_contact.append(user)
 
         # in this case, if dialog.chat.type is not private
-        # else is "bot" or "group", "supergroup" or "channel
+        # else is "group", "supergroup" or "channel"
         else:
             title = dialog.chat.title
             if target in title.lower():
@@ -223,7 +224,7 @@ def menu_get_contact(client):
         return users[key], None
     else:
         # here we are returning a precise non-person chat (in the form id-name) and an empty list (users)
-        return users, {list(non_user_dict)[key - len(users)] : non_user_dict[list(non_user_dict)[key - len(users)]]}
+        return None, {list(non_user_dict)[key - len(users)] : non_user_dict[list(non_user_dict)[key - len(users)]]}
 
 
 def getChatIdsByDialogs(client):
