@@ -19,7 +19,7 @@ _DOWNLOAD_MEDIA_PATH = "media"
 
 
 # Get the all messages in the chat with a given user
-def getChatLogsByIdentifier(client, useridentifier, export_media=0):
+def getChatLogsByIdentifier(client, useridentifier, directory_name):
     json_config = open("configuration.json", "r")
     load_json = json.load(json_config)
     export_media = load_json["export_media"]
@@ -40,7 +40,7 @@ def getChatLogsByIdentifier(client, useridentifier, export_media=0):
                 if export_media == 1:
                     if msg.media:
                         try:
-                            create_path = _DOWNLOAD_MEDIA_PATH + _OS_SEP + str(useridentifier) + _OS_SEP
+                            create_path = _LOG_PATH + _OS_SEP + _DOWNLOAD_MEDIA_PATH + _OS_SEP + directory_name + _OS_SEP
                             print("Media are downloaded...")
                             client.download_media(msg, file_name=create_path)
                         except ValueError:
@@ -314,16 +314,19 @@ def writeAllChatsLogsFile(client, chatIdsList, chatIdUsernamesDict, chatIdTitleD
 
         # creating file name
         file_name = ""
+        # directory_name = ""
         if chatId in chatIdUsernamesDict:
             file_name = file_name + "{}_".format(chatIdUsernamesDict[chatId])
         if chatId in chatIdTitleDict:
             file_name = file_name + "{}_".format(chatIdTitleDict[chatId])
         if chatId in chatIdFullNameDict:
             file_name = file_name + "{}_".format(chatIdFullNameDict[chatId])
+            directory_name = chatIdFullNameDict[chatId]
         if chatId in chatIdPhoneNumberDict:
             file_name = file_name + "{}_".format(chatIdPhoneNumberDict[chatId])
         # Removing illegal characters from file name
         file_name = (file_name.replace("\\", "_")).replace("/", "_")
+        directory_name = file_name
         file_name = file_name + ".csv"
         file_name = _LOG_PATH + _OS_SEP + file_name
 
@@ -331,20 +334,21 @@ def writeAllChatsLogsFile(client, chatIdsList, chatIdUsernamesDict, chatIdTitleD
         print("[writeAllChatsLogsFile] Processing chat with {}".format(chat_data_to_log))
         with open(file_name, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
             file.write(header_string)
-            for msgLog in getChatLogsByIdentifier(client, chatId):
+            for msgLog in getChatLogsByIdentifier(client, chatId, directory_name):
                 file.write("\n" + msgLog)
 
     # Logs about deleted chats
     print("[writeAllChatsLogsFile] Processing deleted chats \n\n")
     for chatId in deletedChatdIds:
         header_string = "ID"
+        directory_name = str(chatId) + "_deleted"
         file_name = str(chatId) + "_deleted.csv"
         file_name = _LOG_PATH + _OS_SEP + file_name
 
         print("[writeAllChatsLogsFile] Processing " + str(chatId) + " deleted chat")
         with open(file_name, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
             file.write(header_string)
-            for msgLog in getChatLogsByIdentifier(client, chatId):
+            for msgLog in getChatLogsByIdentifier(client, chatId, directory_name):
                 file.write("\n" + msgLog)
 
 
@@ -376,13 +380,14 @@ def writeSingleUserChatsLogsFile(client, userObject):
         fileName = fileName + "{}_".format(name)
     if userObject.phone_number is not None:
         fileName = fileName + "{}_".format(userObject.phone_number)
+    directory_name = fileName
     fileName = fileName + ".txt"
     fileName = _LOG_PATH + _OS_SEP + fileName
 
     print("\n[writeSingleUserChatsLogsFile] Processing " + chatDataToLog + " contact")
     with open(fileName, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
         file.write("\n -------------------- START {} -------------------- \n".format(chatDataToLog))
-        for msgLog in getChatLogsByIdentifier(client, userObject.id):
+        for msgLog in getChatLogsByIdentifier(client, userObject.id, directory_name):
             file.write("\n" + msgLog)
         file.write("\n\n -------------------- END {} -------------------- \n".format(chatDataToLog))
 
@@ -400,13 +405,14 @@ def writeSingleNonPersonChatLogsFile(client, nonPersonDict):
 
     fileName = ""
     fileName = fileName + "{}_".format(nonPersonDict[dictKey])
+    directory_name = fileName
     fileName = fileName + ".txt"
     fileName = _LOG_PATH + _OS_SEP + fileName
 
     print("\n[writeSingleNonPersonChatLogsFile] Processing " + chatDataToLog + " chat")
     with open(fileName, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
         file.write("\n -------------------- START {} -------------------- \n".format(chatDataToLog))
-        for msgLog in getChatLogsByIdentifier(client, dictKey):
+        for msgLog in getChatLogsByIdentifier(client, dictKey, directory_name):
             file.write("\n" + msgLog)
         file.write("\n\n -------------------- END {} -------------------- \n".format(chatDataToLog))
 
