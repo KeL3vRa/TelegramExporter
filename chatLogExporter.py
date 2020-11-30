@@ -1,5 +1,6 @@
 from pyrogram import Client
 from pyrogram.errors import FloodWait
+from pyrogram.errors import ChatAdminRequired
 from datetime import datetime
 from classes import classes
 import time
@@ -16,6 +17,7 @@ _OS_SEP = os.sep
 # CHATS LOG FILE DESTINATION FOLDER NAME
 _LOG_PATH = "extraction"
 _DOWNLOAD_MEDIA_PATH = "media"
+_LOG_PATH_CHANNEL = "channel"
 
 
 # Get the all messages in the chat with a given user
@@ -58,11 +60,15 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
                 if export_media == 1:
                     if msg.media:
                         try:
-                            create_path = _LOG_PATH + _OS_SEP + _DOWNLOAD_MEDIA_PATH + _OS_SEP + directory_name + _OS_SEP
-                            print(f"{classes.BColor.OKGREEN}[get_chat_logs_by_identifier] Downloading attached media...{classes.BColor.ENDC}")
+                            create_directory = _LOG_PATH + _OS_SEP + _DOWNLOAD_MEDIA_PATH
+                            if not os.path.exists(create_directory):
+                                os.mkdir(create_directory)
+
+                            create_path = create_directory + _OS_SEP + directory_name + _OS_SEP
+                            print(f"[{classes.BColor.OKBLUE}get_chat_logs_by_identifier{classes.BColor.ENDC}] Downloading attached media...")
                             client_instance.download_media(msg, file_name=create_path)
                         except ValueError:
-                            print(f"{classes.BColor.FAIL}[get_chat_logs_by_identifier] This media is not downloadable.{classes.BColor.ENDC}")
+                            print(f"[{classes.BColor.FAIL}get_chat_logs_by_identifier{classes.BColor.ENDC}] This media is not downloadable.")
                 # Creates the log first column
                 if msg.from_user is not None:
                     _sender_username = classes.User(msg.from_user).to_string()
@@ -170,6 +176,7 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
             # relating to the particular API calling which caused the exception
 
 
+
 def get_contact(client_instance, target=""):
     """
     Get the contact from a target or get all contact.
@@ -213,7 +220,7 @@ def get_contact(client_instance, target=""):
         else:
             title = dialog.chat.title
             if target in title.lower():
-                print(f"[{classes.BColor.OKGREEN}get_contact{classes.BColor.ENDC}] " +
+                print(f"[{classes.BColor.OKBLUE}get_contact{classes.BColor.ENDC}] " +
                       dialog.chat.type +
                       " chat match found")
 
@@ -351,14 +358,12 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
 
         # creating file name
         file_name = ""
-        # directory_name = ""
         if chat_id in chat_id_usernames_dict:
             file_name = file_name + "{}_".format(chat_id_usernames_dict[chat_id])
         if chat_id in chat_id_title_dict:
             file_name = file_name + "{}_".format(chat_id_title_dict[chat_id])
         if chat_id in chat_id_full_name_dict:
             file_name = file_name + "{}_".format(chat_id_full_name_dict[chat_id])
-            directory_name = chat_id_full_name_dict[chat_id]
         if chat_id in chat_id_phone_number_dict:
             file_name = file_name + "{}_".format(chat_id_phone_number_dict[chat_id])
         # Removing illegal characters from file name name
@@ -392,10 +397,66 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
                 for msgLog in get_chat_logs_by_identifier(client_instance, chat_id, directory_name):
                     file.write("\n" + msgLog)
 
-##Cleans extraction folder
+
+def write_all_log_channel(client_instance, chat_title_list):
+    """
+    Write log for all channel or specific channel.
+    Log is in format: FirstName_LastName_ID or Username_ID or FirstName_ID or FirstName_LastName_ID
+    Args:
+        client_instance: client instance
+        chat_title_list: the dictionary contained id and title for channel
+    """
+    for chat_id in chat_title_list:
+        title = chat_title_list[chat_id]
+        list_username = list()
+        try:
+            for member in client_instance.get_chat_members(chat_id):
+
+                if member.user.username is None and member.user.first_name is None and member.user.last_name is None:
+                    user = str(member.user.id) + ","
+                elif member.user.username is None and member.user.last_name is None:
+                    user = member.user.first_name + "_" + str(member.user.id) + ","
+                elif member.user.username is None:
+                    user = member.user.first_name + "_" + member.user.last_name + "_" + str(member.user.id) + ","
+                else:
+                    user = member.user.username + "_" + str(member.user.id) + ","
+
+                list_username.append(user)
+        except AttributeError:
+            print(f"[{classes.BColor.FAIL}write_all_members_channel_logs_file{classes.BColor.ENDC}] "
+                  f"This operation is Forbidden \n\n")
+        except ChatAdminRequired:
+            print(f"[{classes.BColor.FAIL}write_all_members_channel_logs_file{classes.BColor.ENDC}] "
+                  f"This operation is allowed only by Admin \n\n")
+
+        if len(list_username) != 0:
+            print(f"[{classes.BColor.OKBLUE}write_all_members_channel_logs_file{classes.BColor.ENDC}] "
+                  f"Processing members chats \n\n")
+            header = "MEMBERS"
+
+            # Removing illegal characters from file name name
+            file_name = (title.replace("\\", "_")).replace("/", "_")
+            name_file = file_name + ".csv"
+            directory = _LOG_PATH + _OS_SEP + _LOG_PATH_CHANNEL
+
+            if not os.path.exists(directory):
+                os.mkdir(directory)
+
+            saved_file = directory + _OS_SEP + name_file
+
+            with open(saved_file, "w", encoding="UTF-8") as file:
+                file.write(header + "\n")
+                for username in list_username:
+                    file.write(username)
+        else:
+            print(f"[{classes.BColor.FAIL}write_all_members_channel_logs_file{classes.BColor.ENDC}] "
+                  f"No members into chat " + title + "\n\n")
+
+
+# Cleans extraction folder
 def clean_extraction_folder():
     folder = _LOG_PATH
-    print(f"\n[{classes.BColor.OKGREEN}clean_extraction_folder{classes.BColor.ENDC}] "
+    print(f"\n[{classes.BColor.OKBLUE}clean_extraction_folder{classes.BColor.ENDC}] "
           f"Removing files from folder " + folder)
     for filename in os.listdir(folder):
         file_path = os.path.join(folder, filename)
@@ -406,7 +467,7 @@ def clean_extraction_folder():
                 shutil.rmtree(file_path)
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
-    print(f"[{classes.BColor.OKGREEN}clean_extraction_folder{classes.BColor.ENDC}] Folder cleaned successfully\n")
+    print(f"[{classes.BColor.OKBLUE}clean_extraction_folder{classes.BColor.ENDC}] Folder cleaned successfully\n")
 
 
 if __name__ == "__main__":
@@ -417,6 +478,7 @@ if __name__ == "__main__":
 
     # Create an instance of the pyrogram client
     with Client("my_account") as client:
+
         type_of_extraction = input("Enter: \n[1] to search for a single user "
                                    "        \n[2] to extract all chats"
                                    "        \nPlease enter your choice: ")
@@ -431,12 +493,14 @@ if __name__ == "__main__":
             chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(client, chatId)
             write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict,
                                       chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict)
+            write_all_log_channel(client, chatIdTitleDict)
 
         elif int(type_of_extraction) == 2:
             # Get chats details by dialogs
             chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(client)
             write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict,
                                       deletedChatIds, chatIdPhoneNumberDict)
+            write_all_log_channel(client, chatIdTitleDict)
 
         else:
             print("Please select a correct number.")
