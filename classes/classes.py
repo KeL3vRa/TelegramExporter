@@ -1,6 +1,34 @@
 from datetime import datetime
 
 
+class User:
+
+    def __init__(self, pyrogram_user_obj):
+        _TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+
+        self.id = pyrogram_user_obj.id
+        self.is_bot = pyrogram_user_obj.is_bot
+        self.first_name = "" if pyrogram_user_obj.first_name is None else pyrogram_user_obj.first_name
+        self.last_name = "" if pyrogram_user_obj.last_name is None else pyrogram_user_obj.last_name
+        self.username = "" if pyrogram_user_obj.username is None else pyrogram_user_obj.username
+        self.phone_number = "" if pyrogram_user_obj.phone_number is None else pyrogram_user_obj.phone_number
+
+    def to_string(self):
+        return_string = ""
+        return_string = return_string + "Username = {}".format(self.username) if self.username != "" \
+            else return_string
+        return_string = return_string + ", " if len(return_string) != 0 else return_string  # to add a fields separator
+        return_string = return_string + "Name = {}".format(self.first_name) if self.first_name != "" \
+            else return_string
+        return_string = return_string + " {}".format(self.last_name) if self.last_name != "" \
+            else return_string
+        return_string = return_string + ", " if len(return_string) != 0 else return_string  # to add a fields separator
+        return_string = return_string + "Phone number = {}".format(self.phone_number) if self.phone_number != "" \
+            else return_string
+
+        return return_string
+
+
 class Photo:
 
     def __init__(self, pyrogram_photo_obj):
@@ -376,7 +404,7 @@ class Poll:
     def __init__(self, pyrogram_poll_obj):
         _TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
-        self.id = pyrogram_poll_obj.file_id
+        self.id = pyrogram_poll_obj.id
         self.question = pyrogram_poll_obj.question
         self.options = pyrogram_poll_obj.options
         self.total_voter_count = pyrogram_poll_obj.total_voter_count
