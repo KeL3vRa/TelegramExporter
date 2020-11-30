@@ -66,7 +66,7 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
 
                             create_path = create_directory + _OS_SEP + directory_name + _OS_SEP
                             print(f"[{classes.BColor.OKBLUE}get_chat_logs_by_identifier{classes.BColor.ENDC}] Downloading attached media...")
-                            client_instance.download_media(msg, file_name=create_path)
+                            client_instance.download_media(msg, file_name=create_path, block=False)
                         except ValueError:
                             print(f"[{classes.BColor.FAIL}get_chat_logs_by_identifier{classes.BColor.ENDC}] This media is not downloadable.")
                 # Creates the log first column
@@ -174,7 +174,6 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
                   f"Waiting 29s{classes.BColor.ENDC}")
             time.sleep(29)  # this value is specifically provided by Telegram,
             # relating to the particular API calling which caused the exception
-
 
 
 def get_contact(client_instance, target=""):
@@ -291,7 +290,6 @@ def get_chat_ids_by_dialogs(client_instance, single_chat_id=None):
         # If user hasn't specified a particular user to extract or if he wants to extract a particular chat
         if (single_chat_id is None) or (single_chat_id is not None and dialog.chat.id == single_chat_id):
             if dialog.chat.username is not None:
-                # DEBUG: TO AVOID CHANNELS COMMENT NEXT LINE ADD if dialog.chat.title is None:
                 chat_ids_list.append(dialog.chat.id)
                 chat_id_usernames_dict[dialog.chat.id] = dialog.chat.username
                 # Tries to get the person phone number retrieving his id
@@ -305,18 +303,17 @@ def get_chat_ids_by_dialogs(client_instance, single_chat_id=None):
                       " Retrieved chat with username: {}".format(dialog.chat.username))
 
             if dialog.chat.title is not None:
-                # DEBUG: TO AVOID CHANNELS COMMENT NEXT LINE
                 chat_ids_list.append(dialog.chat.id)
                 chat_id_title_dict[dialog.chat.id] = dialog.chat.title
                 print(f"\n{classes.BColor.OKBLUE}[get_chat_ids_by_dialogs]{classes.BColor.ENDC}" +
                       " Retrieved chat with title: {}".format(dialog.chat.title))
 
             if dialog.chat.first_name is not None:
-                if not dialog.chat.id in chat_ids_list:
+                if dialog.chat.id not in chat_ids_list:
                     chat_ids_list.append(dialog.chat.id)
                 # Identify the full name of the person who the chat relates to
                 formatted_name = dialog.chat.first_name
-                if not dialog.chat.last_name is None:
+                if dialog.chat.last_name is not None:
                     formatted_name = formatted_name + " " + dialog.chat.last_name
                 chat_id_full_name_dict[dialog.chat.id] = formatted_name
                 # Tries to get the person phone number retrieving his id
@@ -398,7 +395,7 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
                     file.write("\n" + msgLog)
 
 
-def write_all_log_channel(client_instance, chat_title_list):
+def write_group_chats_members(client_instance, chat_title_list):
     """
     Write log for all channel or specific channel.
     Log is in format: FirstName_LastName_ID or Username_ID or FirstName_ID or FirstName_LastName_ID
@@ -411,17 +408,7 @@ def write_all_log_channel(client_instance, chat_title_list):
         list_username = list()
         try:
             for member in client_instance.get_chat_members(chat_id):
-
-                if member.user.username is None and member.user.first_name is None and member.user.last_name is None:
-                    user = str(member.user.id) + ","
-                elif member.user.username is None and member.user.last_name is None:
-                    user = member.user.first_name + "_" + str(member.user.id) + ","
-                elif member.user.username is None:
-                    user = member.user.first_name + "_" + member.user.last_name + "_" + str(member.user.id) + ","
-                else:
-                    user = member.user.username + "_" + str(member.user.id) + ","
-
-                list_username.append(user)
+                list_username.append(classes.User(member.user).to_string())
         except AttributeError:
             print(f"[{classes.BColor.FAIL}write_all_members_channel_logs_file{classes.BColor.ENDC}] "
                   f"This operation is Forbidden \n\n")
@@ -493,14 +480,14 @@ if __name__ == "__main__":
             chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(client, chatId)
             write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict,
                                       chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict)
-            write_all_log_channel(client, chatIdTitleDict)
+            write_group_chats_members(client, chatIdTitleDict)
 
         elif int(type_of_extraction) == 2:
             # Get chats details by dialogs
             chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(client)
             write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict,
                                       deletedChatIds, chatIdPhoneNumberDict)
-            write_all_log_channel(client, chatIdTitleDict)
+            write_group_chats_members(client, chatIdTitleDict)
 
         else:
             print("Please select a correct number.")
