@@ -17,11 +17,12 @@ _OS_SEP = os.sep
 # CHATS LOG FILE DESTINATION FOLDER NAME
 _LOG_PATH = "extraction"
 _DOWNLOAD_MEDIA_PATH = "media"
-_LOG_PATH_CHANNEL = "channel"
+_MEMBERS_FILE_SUFFIX = "members"
 
 
 # Get the all messages in the chat with a given user
 def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name):
+    partecipants_ids = list()
     # Retrieves the folder into which create the chat's media folder
     json_config = open("configuration.json", "r")
     load_json = json.load(json_config)
@@ -72,6 +73,8 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
                 # Creates the log first column
                 if msg.from_user is not None:
                     _sender_username = classes.User(msg.from_user).to_string()
+                    if msg.from_user.id not in partecipants_ids:
+                        partecipants_ids.append(msg.from_user.id)
                 else:
                     _sender_username = chat_title
                 _formatted_message_date = datetime.utcfromtimestamp(msg.date).strftime(_TIME_FORMAT)
@@ -167,7 +170,8 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
                 else:
                     formatted_log.append(_FORMAT_LOG_STRING.format(_sender_username, _formatted_message_date,
                                                                    "Not possible to find the type of message", ""))
-            return formatted_log
+
+            return formatted_log, partecipants_ids
 
         except FloodWait:
             print(f"{classes.BColor.FAIL}[get_chat_logs_by_identifier] FloodWait exception may be fired by Telegram. "
@@ -292,7 +296,8 @@ def get_chat_ids_by_dialogs(client_instance, single_chat_id=None):
             if dialog.chat.username is not None:
                 chat_ids_list.append(dialog.chat.id)
                 chat_id_usernames_dict[dialog.chat.id] = dialog.chat.username
-                # Tries to get the person phone number retrieving his id
+                # Tries to get the person phone number retrieving his id;
+                # it's necessary a single-item list for get_users()
                 ids = list()
                 ids.append(dialog.chat.id)
                 user_obj_list = client_instance.get_users(ids)
@@ -354,28 +359,51 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
             chat_data_to_log = chat_data_to_log + "{};".format(chat_id_title_dict[chat_id])
 
         # creating file name
-        file_name = ""
+        file_name_prefix = ""
         if chat_id in chat_id_usernames_dict:
-            file_name = file_name + "{}_".format(chat_id_usernames_dict[chat_id])
+            file_name_prefix = file_name_prefix + "{}_".format(chat_id_usernames_dict[chat_id])
         if chat_id in chat_id_title_dict:
-            file_name = file_name + "{}_".format(chat_id_title_dict[chat_id])
+            file_name_prefix = file_name_prefix + "{}_".format(chat_id_title_dict[chat_id])
         if chat_id in chat_id_full_name_dict:
-            file_name = file_name + "{}_".format(chat_id_full_name_dict[chat_id])
+            file_name_prefix = file_name_prefix + "{}_".format(chat_id_full_name_dict[chat_id])
         if chat_id in chat_id_phone_number_dict:
-            file_name = file_name + "{}_".format(chat_id_phone_number_dict[chat_id])
+            file_name_prefix = file_name_prefix + "{}_".format(chat_id_phone_number_dict[chat_id])
         # Removing illegal characters from file name name
-        file_name = (file_name.replace("\\", "_")).replace("/", "_")
-        directory_name = file_name
-        file_name = file_name + ".csv"
+        file_name_prefix = (file_name_prefix.replace("\\", "_")).replace("/", "_")
+        # Creates the directory where to store medias
+        directory_name = file_name_prefix
+        file_name = file_name_prefix + ".csv"
         file_name = _LOG_PATH + _OS_SEP + file_name
 
         # Logs about existing chats
         print(f"[{classes.BColor.OKBLUE}write_all_chats_logs_file{classes.BColor.ENDC}]" +
               " Processing chat with {}".format(chat_data_to_log))
+        log_lines, partecipants_ids = get_chat_logs_by_identifier(client_instance, chat_id, directory_name)
         with open(file_name, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
             file.write(header_string)
-            for msgLog in get_chat_logs_by_identifier(client_instance, chat_id, directory_name):
+            for msgLog in log_lines:
                 file.write("\n" + msgLog)
+
+        # Partecipants file
+        if partecipants_ids:
+            print(f"[{classes.BColor.OKBLUE}write_all_chats_logs_file{classes.BColor.ENDC}] "
+                  f"Processing members chats \n\n")
+            header = "MEMBERS"
+
+            directory = _LOG_PATH + _OS_SEP + _MEMBERS_FILE_SUFFIX
+
+            if not os.path.exists(directory):
+                os.mkdir(directory)
+
+            saving_file_path = directory + _OS_SEP + file_name_prefix + ".csv"
+
+            with open(saving_file_path, "w", encoding="UTF-8") as file:
+                file.write(header + "\n")
+                for user in client.get_users(partecipants_ids):
+                    file.write(classes.User(user).to_string())
+        else:
+            print(f"[{classes.BColor.FAIL}write_all_members_channel_logs_file{classes.BColor.ENDC}] "
+                  f"No members into chat " + "\n\n")
 
     # if there are deleted chats
     if len(deleted_chat_ids) != 0:
@@ -389,9 +417,10 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
 
             print(f"[{classes.BColor.OKBLUE}write_all_chats_logs_file{classes.BColor.ENDC}] Processing "
                   + str(chat_id) + " deleted chat")
+            log_lines, partecipants_ids = get_chat_logs_by_identifier(client_instance, chat_id, directory_name)
             with open(file_name, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
                 file.write(header_string)
-                for msgLog in get_chat_logs_by_identifier(client_instance, chat_id, directory_name):
+                for msgLog in log_lines:
                     file.write("\n" + msgLog)
 
 
@@ -424,7 +453,7 @@ def write_group_chats_members(client_instance, chat_title_list):
             # Removing illegal characters from file name name
             file_name = (title.replace("\\", "_")).replace("/", "_")
             name_file = file_name + ".csv"
-            directory = _LOG_PATH + _OS_SEP + _LOG_PATH_CHANNEL
+            directory = _LOG_PATH + _OS_SEP + _MEMBERS_FILE_SUFFIX
 
             if not os.path.exists(directory):
                 os.mkdir(directory)
@@ -475,19 +504,17 @@ if __name__ == "__main__":
             clean_extraction_folder()
 
         if int(type_of_extraction) == 1:
-            # Get a particular chat decide by the user
+            # Get chat logs for a user-specified chat
             chatId = menu_get_contact(client)
             chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(client, chatId)
             write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict,
                                       chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict)
-            write_group_chats_members(client, chatIdTitleDict)
 
         elif int(type_of_extraction) == 2:
-            # Get chats details by dialogs
+            # Get chat logs for all chats
             chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(client)
             write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict,
                                       deletedChatIds, chatIdPhoneNumberDict)
-            write_group_chats_members(client, chatIdTitleDict)
 
         else:
             print("Please select a correct number.")
