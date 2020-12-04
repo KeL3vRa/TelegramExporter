@@ -3,21 +3,38 @@ from pyrogram.errors import FloodWait
 from pyrogram.errors import ChatAdminRequired
 from datetime import datetime
 from classes import classes
+from filehash import FileHash
 import time
 import sys
 import os
 import json
 import shutil
+import zipfile
+
 
 _FORMAT_LOG_STRING = "{:20};{:19};{};{}"
 _TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 _ALL_CHATS_HEADER_STRING = "SENDER;TIMESTAMP;MESSAGE;DETAILS (OPTIONAL)"
 _OS_SEP = os.sep
 
-# CHATS LOG FILE DESTINATION FOLDER NAME
-_LOG_PATH = "extraction"
+# DATETIME FOR EXTRACTION
+_extraction_date = datetime.now().strftime("%d-%m-%Y %H-%M-%S")
+
+#CURRENT EXTRACTION FOLDER
+_EXTRACTION_FOLDER = "extraction" + _OS_SEP + "Extraction_" + _extraction_date
+
+#PATH USED FOR THE EXTRACTION OF CHATS, MEDIA AND MEMBERS
+_CHATS = "chats"
 _DOWNLOAD_MEDIA_PATH = "media"
 _MEMBERS_FILE_SUFFIX = "members"
+
+_CHAT_PATH = _EXTRACTION_FOLDER + _OS_SEP + _CHATS
+_MEDIA_PATH = _EXTRACTION_FOLDER + _OS_SEP + _DOWNLOAD_MEDIA_PATH
+_MEMBERS_PATH = _EXTRACTION_FOLDER + _OS_SEP + _MEMBERS_FILE_SUFFIX
+
+#EXTRACTION ZIP AND HASH FILE
+_EXTRACTION_ZIP = _EXTRACTION_FOLDER + _OS_SEP + "extraction.zip"
+_FILE_HASH = _EXTRACTION_FOLDER + _OS_SEP + "extraction_archive_hash.txt"
 
 
 # Get the all messages in the chat with a given user
@@ -61,7 +78,7 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
                 if export_media == 1:
                     if msg.media:
                         try:
-                            create_directory = _LOG_PATH + _OS_SEP + _DOWNLOAD_MEDIA_PATH
+                            create_directory = _MEDIA_PATH
                             if not os.path.exists(create_directory):
                                 os.mkdir(create_directory)
 
@@ -373,7 +390,7 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
         # Creates the directory where to store medias
         directory_name = file_name_prefix
         file_name = file_name_prefix + ".csv"
-        file_name = _LOG_PATH + _OS_SEP + file_name
+        file_name = _CHAT_PATH + _OS_SEP + file_name
 
         # Logs about existing chats
         print(f"[{classes.BColor.OKBLUE}write_all_chats_logs_file{classes.BColor.ENDC}]" +
@@ -390,7 +407,7 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
                   f"Processing members chats \n\n")
             header = "MEMBERS"
 
-            directory = _LOG_PATH + _OS_SEP + _MEMBERS_FILE_SUFFIX
+            directory = _MEMBERS_PATH
 
             if not os.path.exists(directory):
                 os.mkdir(directory)
@@ -413,7 +430,7 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
             header_string = "ID"
             directory_name = str(chat_id) + "_deleted"
             file_name = str(chat_id) + "_deleted.csv"
-            file_name = _LOG_PATH + _OS_SEP + file_name
+            file_name = _CHAT_PATH +_OS_SEP + file_name
 
             print(f"[{classes.BColor.OKBLUE}write_all_chats_logs_file{classes.BColor.ENDC}] Processing "
                   + str(chat_id) + " deleted chat")
@@ -453,7 +470,7 @@ def write_group_chats_members(client_instance, chat_title_list):
             # Removing illegal characters from file name name
             file_name = (title.replace("\\", "_")).replace("/", "_")
             name_file = file_name + ".csv"
-            directory = _LOG_PATH + _OS_SEP + _MEMBERS_FILE_SUFFIX
+            directory = _MEMBERS_PATH
 
             if not os.path.exists(directory):
                 os.mkdir(directory)
@@ -469,10 +486,13 @@ def write_group_chats_members(client_instance, chat_title_list):
                   f"No members into chat " + title + "\n\n")
 
 
-# Cleans extraction folder
 def clean_extraction_folder():
-    folder = _LOG_PATH
-    print(f"\n[{classes.BColor.OKBLUE}clean_extraction_folder{classes.BColor.ENDC}] "
+    """
+    Cleans the entire extraction folder with all the previous extractions
+    :return:
+    """
+    folder = "extraction"
+    print(f"[{classes.BColor.OKBLUE}clean_extraction_folder{classes.BColor.ENDC}] \n"
           f"Removing files from folder " + folder)
     for filename in os.listdir(folder):
         file_path = os.path.join(folder, filename)
@@ -486,22 +506,97 @@ def clean_extraction_folder():
     print(f"[{classes.BColor.OKBLUE}clean_extraction_folder{classes.BColor.ENDC}] Folder cleaned successfully\n")
 
 
+def create_extraction_folders():
+    """
+    Creates the extraction folders used to save extracted chats, media and members
+    :return:
+    """
+    print(f"[{classes.BColor.OKBLUE}create_extraction_folders{classes.BColor.ENDC}] Creating extraction folders")
+
+    # creating chat path
+    if not os.path.exists(_CHAT_PATH):
+        os.makedirs(_CHAT_PATH)
+
+    # creating members path
+    if not os.path.exists(_MEMBERS_PATH):
+        os.makedirs(_MEMBERS_PATH)
+
+    # creating media path
+    if not os.path.exists(_MEDIA_PATH):
+        os.makedirs(_MEDIA_PATH)
+
+    print(f"[{classes.BColor.OKBLUE}create_extraction_folders{classes.BColor.ENDC}] Extraction folders created successfully")
+
+
+def compress_and_hash_extraction():
+    """
+    Creates a zip archive with the content of the current extraction
+    and a txt file wish the hashes of the archive in MD5 and SHA512
+    :return:
+    """
+
+    print(f"[{classes.BColor.OKBLUE}compress_and_hash_extraction{classes.BColor.ENDC}] Creating extraction zip archive...")
+    try:
+        zip_file = zipfile.ZipFile(_EXTRACTION_ZIP, 'w', zipfile.ZIP_DEFLATED)
+        for root, dirs, files in os.walk(_CHAT_PATH):
+            for file in files:
+                zip_file.write(os.path.join(root, file))
+
+        for root, dirs, files in os.walk(_MEDIA_PATH):
+            for file in files:
+                zip_file.write(os.path.join(root, file))
+
+        for root, dirs, files in os.walk(_MEMBERS_PATH):
+            for file in files:
+                zip_file.write(os.path.join(root, file))
+
+        zip_file.close()
+        print(f"[{classes.BColor.OKBLUE}compress_and_hash_extraction{classes.BColor.ENDC}] Extraction zip archive created successfully")
+    except Exception:
+        print(f"{classes.BColor.FAIL}Error creating zip archive{classes.BColor.ENDC}")
+
+    try:
+        print(f"[{classes.BColor.OKBLUE}compress_and_hash_extraction{classes.BColor.ENDC}] Creating zip hashes...")
+        md5hasher = FileHash('md5')
+        sha1hasher = FileHash('sha512')
+
+        md5Hash = md5hasher.hash_file(_EXTRACTION_ZIP)
+        sha512Hash = sha1hasher.hash_file(_EXTRACTION_ZIP)
+        with open(_FILE_HASH, 'w', encoding='utf-8') as file:
+            file.write('MD5: ' + md5Hash)
+            file.write('\nSHA512: ' + sha512Hash)
+
+        print(f"[{classes.BColor.OKBLUE}compress_and_hash_extraction{classes.BColor.ENDC}] Zip hashes created successfully")
+    except Exception:
+        print(f"{classes.BColor.FAIL}Error creating hash file{classes.BColor.ENDC}")
+
+
+def show_banner():
+    print(" _______   _                                  ______                       _          \n" 
+        "|__   __| | |                                |  ____|                     | |           \n"
+        "   | | ___| | ___  __ _ _ __ __ _ _ __ ___   | |__  __  ___ __   ___  _ __| |_ ___ _ __ \n"
+        "   | |/ _ \ |/ _ \/ _` | '__/ _` | '_ ` _ \  |  __| \ \/ / '_ \ / _ \| '__| __/ _ \ '__|\n"
+        "   | |  __/ |  __/ (_| | | | (_| | | | | | | | |____ >  <| |_) | (_) | |  | ||  __/ |   \n"
+        "   |_|\___|_|\___|\__, |_|  \__,_|_| |_| |_| |______/_/\_\ .__/ \___/|_|   \__\___|_|   \n"
+        "                   __/ |                                 | |                            \n"
+        "                  |___/                                  |_|                -By DMD     \n"
+    )
+
+
 if __name__ == "__main__":
-
-    # creating log path
-    if not os.path.exists(_LOG_PATH):
-        os.makedirs(_LOG_PATH)
-
+    show_banner()
     # Create an instance of the pyrogram client
     with Client("my_account") as client:
-
-        type_of_extraction = input("Enter: \n[1] to search for a single user "
-                                   "        \n[2] to extract all chats"
-                                   "        \nPlease enter your choice: ")
 
         clean_folder = input("Do you want to clean extraction folder from previous extractions files? (y/N): ")
         if clean_folder == 'y':
             clean_extraction_folder()
+
+        create_extraction_folders()
+
+        type_of_extraction = input("Enter: \n[1] to search for a single user "
+                                   "        \n[2] to extract all chats"
+                                   "        \nPlease enter your choice: ")
 
         if int(type_of_extraction) == 1:
             # Get chat logs for a user-specified chat
@@ -510,11 +605,15 @@ if __name__ == "__main__":
             write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict,
                                       chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict)
 
+            compress_and_hash_extraction()
+
         elif int(type_of_extraction) == 2:
             # Get chat logs for all chats
             chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(client)
             write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict,
                                       deletedChatIds, chatIdPhoneNumberDict)
+
+            compress_and_hash_extraction()
 
         else:
             print("Please select a correct number.")
