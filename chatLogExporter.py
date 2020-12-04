@@ -3,13 +3,14 @@ from pyrogram.errors import FloodWait
 from pyrogram.errors import ChatAdminRequired
 from datetime import datetime
 from classes import classes
-from filehash import FileHash
 import time
 import sys
 import os
 import json
 import shutil
 import zipfile
+import hashlib
+
 
 
 _FORMAT_LOG_STRING = "{:20};{:19};{};{}"
@@ -557,14 +558,21 @@ def compress_and_hash_extraction():
 
     try:
         print(f"[{classes.BColor.OKBLUE}compress_and_hash_extraction{classes.BColor.ENDC}] Creating zip hashes...")
-        md5hasher = FileHash('md5')
-        sha1hasher = FileHash('sha512')
+        sha512_hash = hashlib.sha512()
+        md5_hash = hashlib.md5()
 
-        md5Hash = md5hasher.hash_file(_EXTRACTION_ZIP)
-        sha512Hash = sha1hasher.hash_file(_EXTRACTION_ZIP)
+        with open(_EXTRACTION_ZIP, "rb") as f:
+            # Read and update hash string value in blocks of 4K
+            for byte_block in iter(lambda: f.read(4096), b""):
+                sha512_hash.update(byte_block)
+                md5_hash.update(byte_block)
+
+        sha = sha512_hash.hexdigest()
+        md5 = md5_hash.hexdigest()
+
         with open(_FILE_HASH, 'w', encoding='utf-8') as file:
-            file.write('MD5: ' + md5Hash)
-            file.write('\nSHA512: ' + sha512Hash)
+            file.write('MD5: ' + md5)
+            file.write('\nSHA512: ' + sha)
 
         print(f"[{classes.BColor.OKBLUE}compress_and_hash_extraction{classes.BColor.ENDC}] Zip hashes created successfully")
     except Exception:
@@ -594,7 +602,7 @@ if __name__ == "__main__":
 
         create_extraction_folders()
 
-        type_of_extraction = input("Enter: \n[1] to search for a single user "
+        type_of_extraction = input("\nEnter: \n[1] to search for a single user "
                                    "        \n[2] to extract all chats"
                                    "        \nPlease enter your choice: ")
 
