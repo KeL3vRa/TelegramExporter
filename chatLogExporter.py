@@ -10,9 +10,9 @@ import json
 import shutil
 import zipfile
 import hashlib
+from colorama import init
 
-
-
+init()
 _FORMAT_LOG_STRING = "{:20};{:19};{};{}"
 _TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 _ALL_CHATS_HEADER_STRING = "SENDER;TIMESTAMP;MESSAGE;DETAILS (OPTIONAL)"
@@ -21,10 +21,10 @@ _OS_SEP = os.sep
 # DATETIME FOR EXTRACTION
 _extraction_date = datetime.now().strftime("%d-%m-%Y %H-%M-%S")
 
-#CURRENT EXTRACTION FOLDER
+# CURRENT EXTRACTION FOLDER
 _EXTRACTION_FOLDER = "extraction" + _OS_SEP + "Extraction_" + _extraction_date
 
-#PATH USED FOR THE EXTRACTION OF CHATS, MEDIA AND MEMBERS
+# PATH USED FOR THE EXTRACTION OF CHATS, MEDIA AND MEMBERS
 _CHATS = "chats"
 _DOWNLOAD_MEDIA_PATH = "media"
 _MEMBERS_FILE_SUFFIX = "members"
@@ -33,7 +33,7 @@ _CHAT_PATH = _EXTRACTION_FOLDER + _OS_SEP + _CHATS
 _MEDIA_PATH = _EXTRACTION_FOLDER + _OS_SEP + _DOWNLOAD_MEDIA_PATH
 _MEMBERS_PATH = _EXTRACTION_FOLDER + _OS_SEP + _MEMBERS_FILE_SUFFIX
 
-#EXTRACTION ZIP AND HASH FILE
+# EXTRACTION ZIP AND HASH FILE
 _EXTRACTION_ZIP = _EXTRACTION_FOLDER + _OS_SEP + "extraction.zip"
 _FILE_HASH = _EXTRACTION_FOLDER + _OS_SEP + "extraction_archive_hash.txt"
 
@@ -71,7 +71,7 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
             chat = list()
             # DEBUG: for message in client.get_history(useridentifier, limit=3): instead of for message in client.iter_history(useridentifier):
             for message in client_instance.get_history(chat_identifier, limit=3):
-            # for message in client.iter_history(useridentifier):
+                # for message in client.iter_history(useridentifier):
                 chat.append(message)
             # Iterate over the previously created list
             for msg in chat:
@@ -84,10 +84,12 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
                                 os.mkdir(create_directory)
 
                             create_path = create_directory + _OS_SEP + directory_name + _OS_SEP
-                            print(f"[{classes.BColor.OKBLUE}get_chat_logs_by_identifier{classes.BColor.ENDC}] Downloading attached media...")
+                            print(
+                                f"[{classes.BColor.OKBLUE}get_chat_logs_by_identifier{classes.BColor.ENDC}] Downloading attached media...")
                             client_instance.download_media(msg, file_name=create_path, block=False)
                         except ValueError:
-                            print(f"[{classes.BColor.FAIL}get_chat_logs_by_identifier{classes.BColor.ENDC}] This media is not downloadable.")
+                            print(
+                                f"[{classes.BColor.FAIL}get_chat_logs_by_identifier{classes.BColor.ENDC}] This media is not downloadable.")
                 # Creates the log first column
                 if msg.from_user is not None:
                     _sender_username = classes.User(msg.from_user).to_string()
@@ -230,7 +232,6 @@ def get_contact(client_instance, target=""):
 
             # if user still exists and the user has specified a name to search or if he wants all users
             if (not user["is_deleted"]) and ((target != "" and is_present) or (target == "")):
-
                 print(f"[{classes.BColor.OKBLUE}get_contact{classes.BColor.ENDC}] "
                       f"Person chat match found{classes.BColor.ENDC}")
                 # add the dictionary to the resulting variable
@@ -300,7 +301,6 @@ def menu_get_contact(client_instance):
 
 
 def get_chat_ids_by_dialogs(client_instance, single_chat_id=None):
-
     chat_ids_list = list()
     chat_id_usernames_dict = dict()
     chat_id_title_dict = dict()
@@ -431,7 +431,7 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
             header_string = "ID"
             directory_name = str(chat_id) + "_deleted"
             file_name = str(chat_id) + "_deleted.csv"
-            file_name = _CHAT_PATH +_OS_SEP + file_name
+            file_name = _CHAT_PATH + _OS_SEP + file_name
 
             print(f"[{classes.BColor.OKBLUE}write_all_chats_logs_file{classes.BColor.ENDC}] Processing "
                   + str(chat_id) + " deleted chat")
@@ -526,7 +526,8 @@ def create_extraction_folders():
     if not os.path.exists(_MEDIA_PATH):
         os.makedirs(_MEDIA_PATH)
 
-    print(f"[{classes.BColor.OKBLUE}create_extraction_folders{classes.BColor.ENDC}] Extraction folders created successfully")
+    print(
+        f"[{classes.BColor.OKBLUE}create_extraction_folders{classes.BColor.ENDC}] Extraction folders created successfully")
 
 
 def compress_and_hash_extraction():
@@ -536,7 +537,8 @@ def compress_and_hash_extraction():
     :return:
     """
 
-    print(f"[{classes.BColor.OKBLUE}compress_and_hash_extraction{classes.BColor.ENDC}] Creating extraction zip archive...")
+    print(
+        f"[{classes.BColor.OKBLUE}compress_and_hash_extraction{classes.BColor.ENDC}] Creating extraction zip archive...")
     try:
         zip_file = zipfile.ZipFile(_EXTRACTION_ZIP, 'w', zipfile.ZIP_DEFLATED)
         for root, dirs, files in os.walk(_CHAT_PATH):
@@ -552,7 +554,8 @@ def compress_and_hash_extraction():
                 zip_file.write(os.path.join(root, file))
 
         zip_file.close()
-        print(f"[{classes.BColor.OKBLUE}compress_and_hash_extraction{classes.BColor.ENDC}] Extraction zip archive created successfully")
+        print(
+            f"[{classes.BColor.OKBLUE}compress_and_hash_extraction{classes.BColor.ENDC}] Extraction zip archive created successfully")
     except Exception:
         print(f"{classes.BColor.FAIL}Error creating zip archive{classes.BColor.ENDC}")
 
@@ -574,21 +577,22 @@ def compress_and_hash_extraction():
             file.write('MD5: ' + md5)
             file.write('\nSHA512: ' + sha)
 
-        print(f"[{classes.BColor.OKBLUE}compress_and_hash_extraction{classes.BColor.ENDC}] Zip hashes created successfully")
+        print(
+            f"[{classes.BColor.OKBLUE}compress_and_hash_extraction{classes.BColor.ENDC}] Zip hashes created successfully")
     except Exception:
         print(f"{classes.BColor.FAIL}Error creating hash file{classes.BColor.ENDC}")
 
 
 def show_banner():
-    print(" _______   _                                  ______                       _          \n" 
-        "|__   __| | |                                |  ____|                     | |           \n"
-        "   | | ___| | ___  __ _ _ __ __ _ _ __ ___   | |__  __  ___ __   ___  _ __| |_ ___ _ __ \n"
-        "   | |/ _ \ |/ _ \/ _` | '__/ _` | '_ ` _ \  |  __| \ \/ / '_ \ / _ \| '__| __/ _ \ '__|\n"
-        "   | |  __/ |  __/ (_| | | | (_| | | | | | | | |____ >  <| |_) | (_) | |  | ||  __/ |   \n"
-        "   |_|\___|_|\___|\__, |_|  \__,_|_| |_| |_| |______/_/\_\ .__/ \___/|_|   \__\___|_|   \n"
-        "                   __/ |                                 | |                            \n"
-        "                  |___/                                  |_|                -By DMD     \n"
-    )
+    print(" _______   _                                  ______                       _          \n"
+          "|__   __| | |                                |  ____|                     | |           \n"
+          "   | | ___| | ___  __ _ _ __ __ _ _ __ ___   | |__  __  ___ __   ___  _ __| |_ ___ _ __ \n"
+          "   | |/ _ \ |/ _ \/ _` | '__/ _` | '_ ` _ \  |  __| \ \/ / '_ \ / _ \| '__| __/ _ \ '__|\n"
+          "   | |  __/ |  __/ (_| | | | (_| | | | | | | | |____ >  <| |_) | (_) | |  | ||  __/ |   \n"
+          "   |_|\___|_|\___|\__, |_|  \__,_|_| |_| |_| |______/_/\_\ .__/ \___/|_|   \__\___|_|   \n"
+          "                   __/ |                                 | |                            \n"
+          "                  |___/                                  |_|                -By DMD     \n"
+          )
 
 
 if __name__ == "__main__":
@@ -602,22 +606,25 @@ if __name__ == "__main__":
 
         create_extraction_folders()
 
-        type_of_extraction = input("\nEnter: \n[1] to search for a single user "
-                                   "        \n[2] to extract all chats"
-                                   "        \nPlease enter your choice: ")
+        type_of_extraction = int(input("\nEnter: \n[1] to extract the chats for a single user "
+                                       "         \n[2] to extract the chats for multiple users"
+                                       "         \n[3] to extract all chats"
+                                       "         \nPlease enter your choice: "))
 
-        if int(type_of_extraction) == 1:
+        if type_of_extraction == 1:
             # Get chat logs for a user-specified chat
             chatId = menu_get_contact(client)
-            chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(client, chatId)
+            chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(
+                client, chatId)
             write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict,
                                       chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict)
 
             compress_and_hash_extraction()
 
-        elif int(type_of_extraction) == 2:
+        elif type_of_extraction == 3:
             # Get chat logs for all chats
-            chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(client)
+            chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(
+                client)
             write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict,
                                       deletedChatIds, chatIdPhoneNumberDict)
 
