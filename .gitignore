@@ -142,6 +142,9 @@ media/
 *.session
 *.session-journal
 
+#Telegram API file
+config.ini
+
 # Created log file
 *.txt
 *.json
