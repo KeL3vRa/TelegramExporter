@@ -69,9 +69,8 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
 
             # Create a list with ALL messages exchanged with userIdentifier
             chat = list()
-            # DEBUG: for message in client.get_history(useridentifier, limit=3): instead of for message in client.iter_history(useridentifier):
-            for message in client_instance.get_history(chat_identifier, limit=3):
-                # for message in client.iter_history(useridentifier):
+            # DEBUG: for message in client.get_history(chat_identifier, limit=3): instead of for message in client.iter_history(chat_identifier):
+            for message in client.iter_history(chat_identifier):
                 chat.append(message)
             # Iterate over the previously created list
             for msg in chat:
@@ -632,3 +631,5 @@ if __name__ == "__main__":
 
         else:
             print("Please select a correct number.")
+
+        input()
