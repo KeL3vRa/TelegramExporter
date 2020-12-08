@@ -199,53 +199,58 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
             # relating to the particular API calling which caused the exception
 
 
-def get_contact(client_instance, target=""):
+def get_contact(client_instance, targets=None):
     """
     Get the contact from a target or get all contact.
     The function distinguishes between “private”, “bot”, “group”, “supergroup” or “channel”.
     Args:
         client_instance: Pyrogram Client, the main means for interacting with Telegram.
-        target: can be: full name or username or phone
+        targets: can be: full name or username or phone
 
     Returns:
         saved_contact: contact saved. Can be contain multiple contacts
         non_contact_chat_dict: contact from “bot”, “group”, “supergroup” or “channel”
 
     """
+    if targets is None:
+        targets = []
     saved_contact = list()
     non_contact_chat_dict = dict()
 
     print(f"\n[{classes.BColor.OKBLUE}get_contact{classes.BColor.ENDC}] Retrieving all matching contacts\n")
     # iterate over private chats
-    for dialog in client_instance.iter_dialogs():
-        # Users and bot are handled in the same way by Telegram
-        if dialog.chat.type == 'private' or dialog.chat.type == 'bot':
-            user = client_instance.get_users(dialog.chat.id)
+    for target in targets:
+        for dialog in client_instance.iter_dialogs():
+            # Users and bot are handled in the same way by Telegram
+            if dialog.chat.type == 'private' or dialog.chat.type == 'bot':
+                user = client_instance.get_users(dialog.chat.id)
 
-            first_name = '' if user["first_name"] is None else str(user["first_name"]).lower()
-            last_name = '' if user["last_name"] is None else str(user["last_name"]).lower()
-            phone_number = '' if user["phone_number"] is None else str(user["phone_number"]).lower()
-            username = '' if user["username"] is None else str(user["username"]).lower()
-            full_name = first_name + " " + last_name
-            is_present = True if target in full_name or target in username or target in phone_number else False
+                first_name = '' if user["first_name"] is None else str(user["first_name"]).lower()
+                last_name = '' if user["last_name"] is None else str(user["last_name"]).lower()
+                phone_number = '' if user["phone_number"] is None else str(user["phone_number"]).lower()
+                username = '' if user["username"] is None else str(user["username"]).lower()
+                full_name = first_name + " " + last_name
 
-            # if user still exists and the user has specified a name to search or if he wants all users
-            if (not user["is_deleted"]) and ((target != "" and is_present) or (target == "")):
-                print(f"[{classes.BColor.OKBLUE}get_contact{classes.BColor.ENDC}] "
-                      f"Person chat match found{classes.BColor.ENDC}")
-                # add the dictionary to the resulting variable
-                saved_contact.append(user)
+                is_present = True if target in full_name or target in username or target in phone_number else False
 
-        # in this case, if dialog.chat.type is not private
-        # else is "group", "supergroup" or "channel"
-        else:
-            title = dialog.chat.title
-            if target in title.lower():
-                print(f"[{classes.BColor.OKBLUE}get_contact{classes.BColor.ENDC}] " +
-                      dialog.chat.type +
-                      " chat match found")
+                # if user still exists and the user has specified a name to search or if he wants all users
+                if (not user["is_deleted"]) and ((target != "" and is_present) or (target == "")):
+                    print(f"[{classes.BColor.OKBLUE}get_contact{classes.BColor.ENDC}] "
+                          f"Person chat match found{classes.BColor.ENDC}")
+                    # add the dictionary to the resulting variable
+                    saved_contact.append(user)
 
-                non_contact_chat_dict[dialog.chat.id] = title
+            # in this case, if dialog.chat.type is not private
+            # else is "group", "supergroup" or "channel"
+            else:
+                title = dialog.chat.title
+                # for target in targets:
+                if target in title.lower():
+                    print(f"[{classes.BColor.OKBLUE}get_contact{classes.BColor.ENDC}] " +
+                          dialog.chat.type +
+                          " chat match found")
+
+                    non_contact_chat_dict[dialog.chat.id] = title
 
     return saved_contact, non_contact_chat_dict
 
@@ -256,8 +261,8 @@ def menu_get_contact(client_instance):
                         "\n- Phone number (in this case remember to indicate also the phone prefix): "
                         "\n- Or press enter if you want to see a list of the chats"
                         "\n Please enter your decision: ")
-
-    users, non_user_dict = get_contact(client_instance, target_name.lower())
+    # necessary [target_name.lower()] as list for method get_contact
+    users, non_user_dict = get_contact(client_instance, [target_name.lower()])
 
     if not users and not bool(non_user_dict):
         print(f"{classes.BColor.FAIL}No contacts found!{classes.BColor.ENDC}")
@@ -297,6 +302,95 @@ def menu_get_contact(client_instance):
         return users[key].id
     else:
         return list(non_user_dict)[key - len(users)]
+
+
+def menu_get_multiple_contact(client_instance):
+    target_name = str(input("User separator ';' to select multiple name.\n"
+                            "Enter your decision: "))
+
+    non_user_dict = list()
+    users = list()
+    if target_name.__contains__(";"):
+        users_split = target_name.split(";")
+        users_split = [usr.lower() for usr in users_split]
+        users_split = [usr.strip() for usr in users_split]
+        users, non_user_dict = get_contact(client_instance, users_split)
+    else:
+        print("Please, use ;")
+
+    if not users and not bool(non_user_dict):
+        print(f"{classes.BColor.FAIL}No contacts found!{classes.BColor.ENDC}")
+        sys.exit()
+
+    key = 0
+    ids = []
+
+    for user in users:
+        chat_data_to_log = ""
+        if user.username is not None:
+            chat_data_to_log = chat_data_to_log + "Username: {} ".format(user.username)
+        if user.first_name is not None:
+            chat_data_to_log = chat_data_to_log + "First Name: {} ".format(user.first_name)
+        if user.last_name is not None:
+            chat_data_to_log = chat_data_to_log + "Last Name: {} ".format(user.last_name)
+        if user.phone_number is not None:
+            chat_data_to_log = chat_data_to_log + "Telephone number: {} ".format(user.phone_number)
+
+        print(f"[{classes.BColor.OKBLUE}*{classes.BColor.ENDC}] " + str(key) + " " + chat_data_to_log)
+        key += 1
+        ids.append(user.id)
+
+    return ids
+
+
+def get_multiple_chat_ids_by_dialogs(client_instance, multiple_ids_chats):
+    chat_ids_list = list()
+    chat_id_usernames_dict = dict()
+    chat_id_title_dict = dict()
+    chat_id_full_name_dict = dict()
+    chat_id_phone_number_dict = dict()
+
+    for ids_chats in multiple_ids_chats:
+        for dialog in client_instance.iter_dialogs():
+            # If user hasn't specified a particular user to extract or if he wants to extract a particular chat
+            if dialog.chat.id == ids_chats:
+                # if (single_chat_id is None) or (single_chat_id is not None and dialog.chat.id == sci):
+                if dialog.chat.username is not None:
+                    chat_ids_list.append(dialog.chat.id)
+                    chat_id_usernames_dict[dialog.chat.id] = dialog.chat.username
+                    # Tries to get the person phone number retrieving his id;
+                    # it's necessary a single-item list for get_users()
+                    ids = list()
+                    ids.append(dialog.chat.id)
+                    user_obj_list = client_instance.get_users(ids)
+                    if user_obj_list and user_obj_list[0].phone_number is not None:
+                        chat_id_phone_number_dict[dialog.chat.id] = user_obj_list[0].phone_number
+
+                    print(f"\n{classes.BColor.OKBLUE}[get_chat_ids_by_dialogs]{classes.BColor.ENDC}" +
+                          " Retrieved chat with username: {}".format(dialog.chat.username))
+
+                if dialog.chat.title is not None:
+                    chat_ids_list.append(dialog.chat.id)
+                    chat_id_title_dict[dialog.chat.id] = dialog.chat.title
+                    print(f"\n{classes.BColor.OKBLUE}[get_chat_ids_by_dialogs]{classes.BColor.ENDC}" +
+                          " Retrieved chat with title: {}".format(dialog.chat.title))
+
+                if dialog.chat.first_name is not None:
+                    if dialog.chat.id not in chat_ids_list:
+                        chat_ids_list.append(dialog.chat.id)
+                    # Identify the full name of the person who the chat relates to
+                    formatted_name = dialog.chat.first_name
+                    if dialog.chat.last_name is not None:
+                        formatted_name = formatted_name + " " + dialog.chat.last_name
+                    chat_id_full_name_dict[dialog.chat.id] = formatted_name
+                    # Tries to get the person phone number retrieving his id
+                    ids = list()
+                    ids.append(dialog.chat.id)
+                    user_obj_list = client_instance.get_users(ids)
+                    if user_obj_list and user_obj_list[0].phone_number is not None:
+                        chat_id_phone_number_dict[dialog.chat.id] = user_obj_list[0].phone_number
+
+    return chat_ids_list, chat_id_usernames_dict, chat_id_title_dict, chat_id_full_name_dict, chat_id_phone_number_dict
 
 
 def get_chat_ids_by_dialogs(client_instance, single_chat_id=None):
@@ -617,7 +711,14 @@ if __name__ == "__main__":
                 client, chatId)
             write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict,
                                       chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict)
+            compress_and_hash_extraction()
 
+        elif type_of_extraction == 2:
+            chatIds = menu_get_multiple_contact(client)
+            chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, chatIdPhoneNumberDict = \
+                get_multiple_chat_ids_by_dialogs(client, chatIds)
+            write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict,
+                                      chatIdFullNameDict, [], chatIdPhoneNumberDict)
             compress_and_hash_extraction()
 
         elif type_of_extraction == 3:
@@ -632,4 +733,3 @@ if __name__ == "__main__":
         else:
             print("Please select a correct number.")
 
-        input()
