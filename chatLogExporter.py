@@ -85,10 +85,12 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
                             create_path = create_directory + _OS_SEP + directory_name + _OS_SEP
                             print(
                                 f"[{classes.BColor.OKBLUE}get_chat_logs_by_identifier{classes.BColor.ENDC}] Downloading attached media...")
-                            client_instance.download_media(msg, file_name=create_path, block=False)
+                            client_instance.download_media(msg, file_name=create_path)
                         except ValueError:
                             print(
                                 f"[{classes.BColor.FAIL}get_chat_logs_by_identifier{classes.BColor.ENDC}] This media is not downloadable.")
+                        except Exception as e:
+                            print('Failed to download. Reason: {}'.format(e))
                 # Creates the log first column
                 if msg.from_user is not None:
                     _sender_username = classes.User(msg.from_user).to_string()
