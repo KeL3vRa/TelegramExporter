@@ -40,6 +40,19 @@ _FILE_HASH = _EXTRACTION_FOLDER + _OS_SEP + "extraction_archive_hash.txt"
 
 # Get the all messages in the chat with a given user
 def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name):
+    """
+    Iterates over all messages retrieved by the chat and generates the related logs;
+    if medias are found, it downloads them;
+    generates the list with data associated to chat partecipants
+    Args:
+        client_instance: Pyrogram Client, the main means for interacting with Telegram.
+        chat_identifier: the ID of the chat (username or chat_id)
+        directory_name: name of the directory into which create the logs and download medias
+
+    Returns:
+        formatted_log: list with chat logs (each element of the list is a chat log)
+        partecipants_ids: list with the ids associated to the partecipants of the chat
+    """
     partecipants_ids = list()
     # Retrieves the folder into which create the chat's media folder
     json_config = open("configuration.json", "r")
@@ -203,15 +216,14 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
 
 def get_contact(client_instance, targets=None):
     """
-    Get the contact from a target or get all contact.
+    Searches from matching chats with the ids entered by the user
     The function distinguishes between “private”, “bot”, “group”, “supergroup” or “channel”.
     Args:
         client_instance: Pyrogram Client, the main means for interacting with Telegram.
-        targets: can be: full name or username or phone
-
+        targets: can be: list of full name, username or phone number for each user
     Returns:
-        saved_contact: contact saved. Can be contain multiple contacts
-        non_contact_chat_dict: contact from “bot”, “group”, “supergroup” or “channel”
+        saved_contact: list of contacts saved into user's phone book
+        non_contact_chat_dict: list of non-contact: “bot”, “group”, “supergroup” or “channel”
 
     """
     if targets is None:
@@ -258,6 +270,13 @@ def get_contact(client_instance, targets=None):
 
 
 def menu_get_contact(client_instance):
+    """
+        Reads user input for single researches and gives a feedback about the research (chats found or not)
+        Args:
+            client_instance: Pyrogram Client, the main means for interacting with Telegram.
+        Returns:
+            the id of the chat, distinguished as user chat or non-user chat
+    """
     target_name = input("You can enter one of the following information: "
                         "\n- Book name \n- Telegram username \n- Channel name \n- Group name "
                         "\n- Phone number (in this case remember to indicate also the phone prefix): "
@@ -307,6 +326,13 @@ def menu_get_contact(client_instance):
 
 
 def menu_get_multiple_contact(client_instance):
+    """
+        Reads user input (for multiple research) and splits it by ";"
+        Args:
+            client_instance: Pyrogram Client, the main means for interacting with Telegram.
+        Returns:
+            ids: list with ids of the chats
+    """
     target_name = str(input("User separator ';' to select multiple name.\n"
                             "Enter your decision: "))
 
@@ -346,6 +372,18 @@ def menu_get_multiple_contact(client_instance):
 
 
 def get_multiple_chat_ids_by_dialogs(client_instance, multiple_ids_chats):
+    """
+       Analyze the list of chat ids
+       Args:
+           client_instance: Pyrogram Client, the main means for interacting with Telegram.
+           multiple_ids_chats: list of chats ids to analyze.
+       Returns:
+        chat_ids_list: list of all chat ids to analyze
+        chat_id_usernames_dict: dictionary with chat_id as keys and usernames as values
+        chat_id_title_dict: dictionary with chat_id as keys and chat title as values
+        chat_id_full_name_dict: dictionary with chat_id as keys and full name (first name and last name) as values
+        chat_id_phone_number_dict: dictionary with chat_id as keys and phone number as values
+    """
     chat_ids_list = list()
     chat_id_usernames_dict = dict()
     chat_id_title_dict = dict()
@@ -396,6 +434,19 @@ def get_multiple_chat_ids_by_dialogs(client_instance, multiple_ids_chats):
 
 
 def get_chat_ids_by_dialogs(client_instance, single_chat_id=None):
+    """
+       One specified chat or all chats
+       Args:
+           client_instance: Pyrogram Client, the main means for interacting with Telegram.
+           single_chat_id: if this param is None, all chats are retrieved; otherwise, only one chat is retrieved.
+       Returns:
+        chat_ids_list: list of all chat ids to analyze
+        chat_id_usernames_dict: dictionary with chat_id as keys and usernames as values
+        chat_id_title_dict: dictionary with chat_id as keys and chat title as values
+        chat_id_full_name_dict: dictionary with chat_id as keys and full name (first name and last name) as values
+        deleted_chat_ids: list of deleted chats' ids
+        chat_id_phone_number_dict: dictionary with chat_id as keys and phone number as values
+    """
     chat_ids_list = list()
     chat_id_usernames_dict = dict()
     chat_id_title_dict = dict()
@@ -450,14 +501,12 @@ def get_chat_ids_by_dialogs(client_instance, single_chat_id=None):
            chat_id_full_name_dict, deleted_chat_ids, chat_id_phone_number_dict
 
 
-"""
-Metodo che si occupa della scrittura su file di tutte le chat comprese quelle eliminate
-Viene generato un file per ogni chat in modo dinamico
-"""
-
 
 def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_dict, chat_id_title_dict,
                               chat_id_full_name_dict, deleted_chat_ids, chat_id_phone_number_dict):
+    """
+    
+    """
     header_string = _ALL_CHATS_HEADER_STRING
     # Create logs file for every contact on the phone
     for chat_id in chat_ids_list:
