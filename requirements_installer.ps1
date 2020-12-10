@@ -1,18 +1,19 @@
-﻿$p = &{python -V} 2>&1
+$pythonVersion = Invoke-Expression -Command "python -V" 2>&1
+$python3Version = Invoke-Expression -Command "python3 -V" 2>&1
 
-#check if an ErrorRecord was returned
-if($p -is [System.Management.Automation.ErrorRecord])
+
+if([string]::IsNullOrEmpty($pythonVersion) -and [string]::IsNullOrEmpty($python3Version))
 {
-    "No Python version found. Will be installed the version 3.9.0"
+    Write-Output "No Python version found. Will be installed the version 3.9.0"
     #[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
     #Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.9.0/python-3.9.0.exe" -OutFile "c:/temp/python-3.9.0.exe"
-    #c:/temp/python-3.7.0.exe /quiet InstallAllUsers=0 PrependPath=1 Include_test=0
+    #c:/temp/python-3.9.0.exe /quiet InstallAllUsers=0 PrependPath=1 Include_test=0
     
 }
 else 
 {
-
+    
     #check requirements.txt exist
     $scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
     $requirementFile = "$scriptPath\requirements.txt"
@@ -31,6 +32,3 @@ else
         Write-Output "Please, download requirements.txt"
     }
 }
-
-
-
