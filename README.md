@@ -30,7 +30,6 @@ If two-factor authentication is enabled, you will also be prompted to enter the 
  
 Once the password is entered, the first startup will be completed and the application will be ready to perform extractions. Being the first startup, entering "y" or "N" will not result in any file deletion.
 
-
 ## "CONFIGURATION.JSON" FILE CONFIGURATION
 The "configuration.ini" file is intended for the contextual configuration of the application operation.
 At the moment, it has only one parameter, named "export_media". If it has value 1, then all media retrieved from chats will be downloaded; if it has value 0, they won't be downloaded (in any case, in extracted chats there will be a trace of when the media was sent/received).
