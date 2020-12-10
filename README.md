@@ -2,7 +2,7 @@
 
 [![Creative Commons License](https://licensebuttons.net/l/by-sa/4.0/88x31.png)](https://creativecommons.org/licenses/by-sa/4.0/ "CC BY-SA 4.0")
 
-Telegram Exporter is a forensics tool to extract all chats of a given Telgram account!
+Telegram Exporter is a forensics tool to extract all chats of a given Telegram account!
 The account to analyze must be connected to a phone number.
 
 ## Prerequisites
