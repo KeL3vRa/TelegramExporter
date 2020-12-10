@@ -12,7 +12,7 @@ The installation of these applications is automatic:
 - Windows systems: launch the "startup.ps1" file (requires the "Windows Powershell" shell), which will check for the presence of any version of Python and, if it matches the one declared in the "requirements.txt" file, proceeds with the installation of all the remaining required applications
 - Linux systems: in most Linux distributions Python is already pre-installed; consequently, it is sufficient to run the command "pip3 install -r requirements.txt" from the terminal.
 
-## Configuration of the "CONFIG.INI" file
+## Configuration of the "config.ini" file
 For the first boot, you need to compile the "config.ini" file properly.
 To do this, you need to login on "https://my.telegram.org/auth?to=apps", entering your cell phone number (not the one of the Telegram account to analyze). 
 After that, you'll receive a code on Telegram to enter to authenticate.
