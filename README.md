@@ -22,7 +22,7 @@ After that, you can start the "run.cmd" (for Windows systems) or "run.sh" (for L
 
 ## FIRST BOOT
 At the first startup, you will be asked to enter the phone number (including area code, for example: +39 for numbers registered in Italy) associated with the account from which you want to perform the extraction.
-![alt text](https://github.com/TheF3n1x/TelegramExporter/tree/main/documentation/images/enter_phone_number.png?raw=true)
+<img src="./documentation/images/enter_phone_number.png">
  
 After entering it and pressing "Enter", you will be asked to enter a numeric PIN; this PIN will be sent by the "Telegram" user via message.
  
