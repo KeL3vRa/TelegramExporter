@@ -44,6 +44,7 @@ At the moment, it has only one parameter, named "export_media". If it has value 
 This tool was created during the academic course "Informatica Forense" at the university "Università di Bari A. Moro".
 All work product by the developers is provided "AS IS". Other than as provided in this agreement, developers make no other warranties, express or implied, and hereby disclaims all implied warranties, including any warranty of merchantability and warranty of fitness for a particular purpose.
 
+Usage of TelegramExporter for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program.
 # Credits
 
 TelegramExporter is based on [Pyrogram](https://docs.pyrogram.org/).
