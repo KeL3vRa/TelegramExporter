@@ -1,6 +1,6 @@
 # Telegram Exporter
 
-[![Creative Commons License](https://licensebuttons.net/l/by-sa/4.0/88x31.png)](https://creativecommons.org/licenses/by-sa/4.0/ "CC BY-SA 4.0")
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Licenza Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" property="dct:title"><a xmlns:cc="http://creativecommons.org/ns#" href="https://github.com/TheF3n1x/TelegramExporter" property="cc:attributionName" rel="cc:attributionURL">TelegramExporter</a> è distribuito con Licenza <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribuzione 4.0 Internazionale</a>.<br />Based on a work at <a xmlns:dct="http://purl.org/dc/terms/" href="https://github.com/pyrogram/pyrogram" rel="dct:source">https://github.com/pyrogram/pyrogram</a>.
 
 Telegram Exporter is a forensic tool to extract all chats of a given Telegram account!
 The account to analyze must be connected to a phone number.
@@ -39,3 +39,15 @@ At the moment, it has only one parameter, named "export_media". If it has value 
 - [Domenico Gigante](https://github.com/Domy976)
 - [Domenico Picerno](https://github.com/Davaaam)
 - [Mirko De Vincentiis](https://github.com/TheF3n1x)
+
+# Disclaimer
+This tool was created during the academic course "Informatica Forense" at the university "Università di Bari A. Moro".
+All work product by Developer is provided "AS IS". Other than as provided in this agreement, developera make no other warranties, express or implied, and hereby disclaims all implied warranties, including any warranty of merchantability and warranty of fitness for a particular purpose.
+
+# Credits
+
+TelegramExporter is based on [Pyrogram](https://docs.pyrogram.org/).
+"Pyrogram is an elegant, easy-to-use Telegram client library and framework written from the ground up in Python and C. It enables you to easily create custom applications for both user and bot identities (bot API alternative) via the MTProto API with the Python programming language."
+
+- Copyright (C) 2017-2020 Dan <https://github.com/delivrance>
+- Licensed under the terms of the GNU Lesser General Public License v3 or later (LGPLv3+)
