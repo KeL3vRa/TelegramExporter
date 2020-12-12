@@ -505,7 +505,17 @@ def get_chat_ids_by_dialogs(client_instance, single_chat_id=None):
 def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_dict, chat_id_title_dict,
                               chat_id_full_name_dict, deleted_chat_ids, chat_id_phone_number_dict):
     """
-    
+       Writes the chat logs for all chats (also deleted chats)
+       Args:
+           client_instance: Pyrogram Client, the main means for interacting with Telegram.
+           single_chat_id: if this param is None, all chats are retrieved; otherwise, only one chat is retrieved.
+       Returns:
+        chat_ids_list: list of all chat ids to analyze
+        chat_id_usernames_dict: dictionary with chat_id as keys and usernames as values
+        chat_id_title_dict: dictionary with chat_id as keys and chat title as values
+        chat_id_full_name_dict: dictionary with chat_id as keys and full name (first name and last name) as values
+        deleted_chat_ids: list of deleted chats' ids
+        chat_id_phone_number_dict: dictionary with chat_id as keys and phone number as values
     """
     header_string = _ALL_CHATS_HEADER_STRING
     # Create logs file for every contact on the phone
@@ -588,7 +598,7 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
 
 def write_group_chats_members(client_instance, chat_title_list):
     """
-    Write log for all channel or specific channel.
+    Writes the log file with the partecipants of a chat.
     Log is in format: FirstName_LastName_ID or Username_ID or FirstName_ID or FirstName_LastName_ID
     Args:
         client_instance: client instance
@@ -633,8 +643,7 @@ def write_group_chats_members(client_instance, chat_title_list):
 
 def clean_extraction_folder():
     """
-    Cleans the entire extraction folder with all the previous extractions
-    :return:
+    Cleans the entire extraction folder, deleting all previous extractions
     """
     folder = "extraction"
     print(f"[{classes.BColor.OKBLUE}clean_extraction_folder{classes.BColor.ENDC}] \n"
@@ -654,7 +663,6 @@ def clean_extraction_folder():
 def create_extraction_folders():
     """
     Creates the extraction folders used to save extracted chats, media and members
-    :return:
     """
     print(f"[{classes.BColor.OKBLUE}create_extraction_folders{classes.BColor.ENDC}] Creating extraction folders")
 
@@ -678,7 +686,6 @@ def compress_and_hash_extraction():
     """
     Creates a zip archive with the content of the current extraction
     and a txt file wish the hashes of the archive in MD5 and SHA512
-    :return:
     """
 
     print(
