@@ -9,7 +9,7 @@ The account to analyze must be connected to a phone number.
 All the applications required for Telegram Exporter to work are declared in the "requirements.txt" file. 
 The Python version, on the other hand, must be greater than or equal to "3.0.0".
 The installation of these applications is automatic:
-- Windows systems: launch the "startup.ps1" file (requires the "Windows Powershell" shell), which will check for the presence of any version of Python and, if it matches the one declared in the "requirements.txt" file, proceeds with the installation of all the remaining required applications
+- Windows systems: launch the "requirements_installer.ps1" file (requires the "Windows Powershell" shell), which will check for the presence of any version of Python and, if it matches the one declared in the "requirements.txt" file, proceeds with the installation of all the remaining required applications
 - Linux systems: in most Linux distributions Python is already pre-installed; consequently, it is sufficient to run the command "pip3 install -r requirements.txt" from the terminal.
 
 ## Configuration of the "config.ini" file
