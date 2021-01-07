@@ -38,7 +38,7 @@ At the moment, it has only one parameter, named "export_media". If it has value 
 
 - [Domenico Gigante](https://github.com/Domy976)
 - [Domenico Picerno](https://github.com/Davaaam)
-- [Mirko De Vincentiis](https://github.com/TheF3n1x)
+- [Mirko De Vincentiis](https://github.com/KeL3vRa)
 
 # Disclaimer
 This tool was created during the academic course "Informatica Forense" at the university "Università di Bari A. Moro".
