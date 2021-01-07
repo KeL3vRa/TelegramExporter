@@ -54,6 +54,15 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
         partecipants_ids: list with the ids associated to the partecipants of the chat
     """
     partecipants_ids = list()
+
+    try:
+        for members in client_instance.iter_chat_members(chat_identifier):
+            partecipants_ids.append(members.user.id)
+    except Exception as e:
+        if e.__str__().__contains__("ChatParticipantsForbidden"):
+            print(f"[{classes.BColor.FAIL}get_chat_logs_by_identifier{classes.BColor.ENDC}] "
+                  f"Supergroup or channel found. Members can not be retrieved.")
+
     # Retrieves the folder into which create the chat's media folder
     json_config = open("configuration.json", "r")
     load_json = json.load(json_config)
@@ -83,7 +92,7 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
             # Create a list with ALL messages exchanged with userIdentifier
             chat = list()
             # DEBUG: for message in client.get_history(chat_identifier, limit=3): instead of for message in client.iter_history(chat_identifier):
-            for message in client.iter_history(chat_identifier):
+            for message in client_instance.iter_history(chat_identifier):
                 chat.append(message)
             # Iterate over the previously created list
             for msg in chat:
@@ -501,7 +510,6 @@ def get_chat_ids_by_dialogs(client_instance, single_chat_id=None):
            chat_id_full_name_dict, deleted_chat_ids, chat_id_phone_number_dict
 
 
-
 def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_dict, chat_id_title_dict,
                               chat_id_full_name_dict, deleted_chat_ids, chat_id_phone_number_dict):
     """
@@ -790,4 +798,3 @@ if __name__ == "__main__":
 
         else:
             print("Please select a correct number.")
-

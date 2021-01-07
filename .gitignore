@@ -145,6 +145,9 @@ media/
 #Telegram API file
 config.ini
 
+# Configuration
+configuration.json
+
 # Created log file
 *.txt
 *.json
