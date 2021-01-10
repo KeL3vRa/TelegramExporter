@@ -351,6 +351,7 @@ def menu_get_multiple_contact(client_instance):
         users_split = target_name.split(";")
         users_split = [usr.lower() for usr in users_split]
         users_split = [usr.strip() for usr in users_split]
+        users_split = list(set(users_split))
         users, non_user_dict = get_contact(client_instance, users_split)
     else:
         print("Please, use ;")
