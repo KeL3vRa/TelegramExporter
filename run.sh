@@ -1,1 +1,1 @@
-python3 chatLogExporter.py
+python3 telegramexporter.py
