@@ -377,6 +377,11 @@ def menu_get_multiple_contact(client_instance):
         key += 1
         ids.append(user.id)
 
+    for chat_id in non_user_dict:
+        print(f"[{classes.BColor.OKBLUE}*{classes.BColor.ENDC}] " + str(key) + " " + non_user_dict[chat_id])
+        key += 1
+        ids.append(chat_id)
+
     return ids
 
 
