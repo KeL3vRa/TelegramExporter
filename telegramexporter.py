@@ -13,9 +13,9 @@ import hashlib
 from colorama import init
 
 init()
-_FORMAT_LOG_STRING = "{:20};{:19};{};{}"
+_FORMAT_LOG_STRING = "{:20}§{:19}§{}§{}"
 _TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
-_ALL_CHATS_HEADER_STRING = "SENDER;TIMESTAMP;MESSAGE;DETAILS (OPTIONAL)"
+_ALL_CHATS_HEADER_STRING = "SENDER§TIMESTAMP§MESSAGE§DETAILS (OPTIONAL)"
 _OS_SEP = os.sep
 
 # DATETIME FOR EXTRACTION
@@ -566,7 +566,7 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
         print(f"[{classes.BColor.OKBLUE}write_all_chats_logs_file{classes.BColor.ENDC}]" +
               " Processing chat with {}".format(chat_data_to_log))
         log_lines, partecipants_ids = get_chat_logs_by_identifier(client_instance, chat_id, directory_name)
-        with open(file_name, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
+        with open(file_name, 'w', encoding='utf-16') as file:  # encoding necessary to correctly represent emojis
             file.write(header_string)
             for msgLog in log_lines:
                 file.write("\n" + msgLog)
@@ -584,7 +584,7 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
 
             saving_file_path = directory + _OS_SEP + file_name_prefix + ".csv"
 
-            with open(saving_file_path, "w", encoding="UTF-8") as file:
+            with open(saving_file_path, "w", encoding="UTF-16") as file:
                 file.write(header + "\n")
                 for user in client.get_users(partecipants_ids):
                     file.write(classes.User(user).to_string())
@@ -605,7 +605,7 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
             print(f"[{classes.BColor.OKBLUE}write_all_chats_logs_file{classes.BColor.ENDC}] Processing "
                   + str(chat_id) + " deleted chat")
             log_lines, partecipants_ids = get_chat_logs_by_identifier(client_instance, chat_id, directory_name)
-            with open(file_name, 'w', encoding='utf-8') as file:  # encoding necessary to correctly represent emojis
+            with open(file_name, 'w', encoding='utf-16') as file:  # encoding necessary to correctly represent emojis
                 file.write(header_string)
                 for msgLog in log_lines:
                     file.write("\n" + msgLog)
@@ -647,7 +647,7 @@ def write_group_chats_members(client_instance, chat_title_list):
 
             saved_file = directory + _OS_SEP + name_file
 
-            with open(saved_file, "w", encoding="UTF-8") as file:
+            with open(saved_file, "w", encoding="UTF-16") as file:
                 file.write(header + "\n")
                 for username in list_username:
                     file.write(username)
@@ -739,7 +739,7 @@ def compress_and_hash_extraction():
         sha = sha512_hash.hexdigest()
         md5 = md5_hash.hexdigest()
 
-        with open(_FILE_HASH, 'w', encoding='utf-8') as file:
+        with open(_FILE_HASH, 'w', encoding='utf-16') as file:
             file.write('MD5: ' + md5)
             file.write('\nSHA512: ' + sha)
 
