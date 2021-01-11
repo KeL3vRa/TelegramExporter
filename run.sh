@@ -1,1 +1,1 @@
-python3 telegramexporter.py
+python telegramexporter.py

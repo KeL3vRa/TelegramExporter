@@ -1,4 +1,4 @@
 @echo OFF
-python3 telegramexporter.py
+python telegramexporter.py
 echo Operation completed
 pause
