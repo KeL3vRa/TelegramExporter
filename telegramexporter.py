@@ -61,7 +61,7 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
     except Exception as e:
         if e.__str__().__contains__("ChatParticipantsForbidden"):
             print(f"[{classes.BColor.FAIL}get_chat_logs_by_identifier{classes.BColor.ENDC}] "
-                  f"Supergroup or channel found. Members can not be retrieved.")
+                  f"Members can not be retrieved.")
 
     # Retrieves the folder into which create the chat's media folder
     json_config = open("configuration.json", "r")
@@ -239,9 +239,10 @@ def get_contact(client_instance, targets=None):
         targets = []
     saved_contact = list()
     non_contact_chat_dict = dict()
+    non_contact_type_dict = dict()
 
     print(f"\n[{classes.BColor.OKBLUE}get_contact{classes.BColor.ENDC}] Retrieving all matching contacts\n")
-    # iterate over private chats
+    # iterate over chats
     for target in targets:
         for dialog in client_instance.iter_dialogs():
             # Users and bot are handled in the same way by Telegram
@@ -274,8 +275,9 @@ def get_contact(client_instance, targets=None):
                           " chat match found")
 
                     non_contact_chat_dict[dialog.chat.id] = title
+                    non_contact_type_dict[dialog.chat.id] = dialog.chat.type
 
-    return saved_contact, non_contact_chat_dict
+    return saved_contact, non_contact_chat_dict, non_contact_type_dict
 
 
 def menu_get_contact(client_instance):
@@ -292,7 +294,7 @@ def menu_get_contact(client_instance):
                         "\n- Or press enter if you want to see a list of the chats"
                         "\n Please enter your decision: ")
     # necessary [target_name.lower()] as list for method get_contact
-    users, non_user_dict = get_contact(client_instance, [target_name.lower()])
+    users, non_user_dict, non_contact_type_dict = get_contact(client_instance, [target_name.lower()])
 
     if not users and not bool(non_user_dict):
         print(f"{classes.BColor.FAIL}No contacts found!{classes.BColor.ENDC}")
@@ -319,7 +321,7 @@ def menu_get_contact(client_instance):
             key += 1
 
         for chat_id in non_user_dict:
-            print(f"[{classes.BColor.OKBLUE}*{classes.BColor.ENDC}] " + str(key) + " " + non_user_dict[chat_id])
+            print(f"[{classes.BColor.OKBLUE}*{classes.BColor.ENDC}] " + str(key) + " " + non_user_dict[chat_id] + " (" + str(non_contact_type_dict[chat_id]) + ")")
             key += 1
 
         print(f"[{classes.BColor.OKBLUE}menu_get_contact{classes.BColor.ENDC}] Select number please: ")
@@ -353,7 +355,7 @@ def menu_get_multiple_contact(client_instance):
         users_split = [usr.lower() for usr in users_split]
         users_split = [usr.strip() for usr in users_split]
         users_split = list(set(users_split))
-        users, non_user_dict = get_contact(client_instance, users_split)
+        users, non_user_dict, non_contact_type_dict = get_contact(client_instance, users_split)
     else:
         print("Please, use ;")
 
@@ -380,7 +382,7 @@ def menu_get_multiple_contact(client_instance):
         ids.append(user.id)
 
     for chat_id in non_user_dict:
-        print(f"[{classes.BColor.OKBLUE}*{classes.BColor.ENDC}] " + str(key) + " " + non_user_dict[chat_id])
+        print(f"[{classes.BColor.OKBLUE}*{classes.BColor.ENDC}] " + str(key) + " " + non_user_dict[chat_id] + " (" + str(non_contact_type_dict[chat_id]) + ")")
         key += 1
         ids.append(chat_id)
 
