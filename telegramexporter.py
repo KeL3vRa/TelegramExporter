@@ -287,7 +287,7 @@ def menu_get_contact(client_instance):
             the id of the chat, distinguished as user chat or non-user chat
     """
     target_name = input("You can enter one of the following information: "
-                        "\n- Book name \n- Telegram username \n- Channel name \n- Group name "
+                        "\n- Phone Book name \n- Telegram username \n- Channel name \n- Group name "
                         "\n- Phone number (in this case remember to indicate also the phone prefix): "
                         "\n- Or press enter if you want to see a list of the chats"
                         "\n Please enter your decision: ")
@@ -322,8 +322,9 @@ def menu_get_contact(client_instance):
             print(f"[{classes.BColor.OKBLUE}*{classes.BColor.ENDC}] " + str(key) + " " + non_user_dict[chat_id])
             key += 1
 
-        key = int(input(f"[{classes.BColor.OKBLUE}menu_get_contact{classes.BColor.ENDC}] Select number please: "))
-        if key < 0 or key > len(users) + len(non_user_dict):
+        print(f"[{classes.BColor.OKBLUE}menu_get_contact{classes.BColor.ENDC}] Select number please: ")
+        key = int(input())
+        if key < 0 or key >= len(users) + len(non_user_dict):
             print(f"{classes.BColor.WARNING}[menu_get_contact] Invalid input!!!{classes.BColor.ENDC}")
             sys.exit()
 
