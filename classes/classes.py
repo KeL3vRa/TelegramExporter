@@ -132,7 +132,7 @@ class Sticker:
             if self.size != "" else return_string
         return_string = return_string + ", Date = {}".format(self.date) \
             if self.date != "" else return_string
-        return_string = return_string + ", Correspondent emoji = {}".format(self.emoji) \
+        return_string = return_string + ", Emoji = {}".format(self.emoji) \
             if self.emoji != "" else return_string
         return_string = return_string + ", Sticker set's name = {}".format(self.set_name) \
             if self.set_name != "" else return_string
