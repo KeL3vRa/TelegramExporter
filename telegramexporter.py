@@ -765,46 +765,52 @@ def show_banner():
 
 if __name__ == "__main__":
     show_banner()
+    response = -1
     # Create an instance of the pyrogram client
-    with Client("my_account", hide_password=True) as client:
+    while response != 0:
+        with Client("my_account", hide_password=True) as client:
 
-        if os.path.exists("extraction"):
-            clean_folder = input("Do you want to clean extraction folder from previous extractions files? (y/N): ")
-            if clean_folder == 'y':
-                clean_extraction_folder()
+            if os.path.exists("extraction"):
+                clean_folder = input("Do you want to clean extraction folder from previous extractions files? (y/N): ")
+                if clean_folder == 'y':
+                    clean_extraction_folder()
 
-        create_extraction_folders()
+            create_extraction_folders()
+            try:
+                type_of_extraction = int(input("\nEnter: \n[1] to extract the chats for a single user "
+                                               "         \n[2] to extract the chats for multiple users"
+                                               "         \n[3] to extract all chats"
+                                               "         \n[-1] to quit"   
+                                               "         \nPlease enter your choice: "))
 
-        type_of_extraction = int(input("\nEnter: \n[1] to extract the chats for a single user "
-                                       "         \n[2] to extract the chats for multiple users"
-                                       "         \n[3] to extract all chats"
-                                       "         \nPlease enter your choice: "))
+                if type_of_extraction == 1:
+                    # Get chat logs for a user-specified chat
+                    chatId = menu_get_contact(client)
+                    chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(
+                        client, chatId)
+                    write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict,
+                                              chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict)
+                    compress_and_hash_extraction()
 
-        if type_of_extraction == 1:
-            # Get chat logs for a user-specified chat
-            chatId = menu_get_contact(client)
-            chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(
-                client, chatId)
-            write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict,
-                                      chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict)
-            compress_and_hash_extraction()
+                elif type_of_extraction == 2:
+                    chatIds = menu_get_multiple_contact(client)
+                    chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, chatIdPhoneNumberDict = \
+                        get_multiple_chat_ids_by_dialogs(client, chatIds)
+                    write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict,
+                                              chatIdFullNameDict, [], chatIdPhoneNumberDict)
+                    compress_and_hash_extraction()
 
-        elif type_of_extraction == 2:
-            chatIds = menu_get_multiple_contact(client)
-            chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, chatIdPhoneNumberDict = \
-                get_multiple_chat_ids_by_dialogs(client, chatIds)
-            write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict,
-                                      chatIdFullNameDict, [], chatIdPhoneNumberDict)
-            compress_and_hash_extraction()
+                elif type_of_extraction == 3:
+                    # Get chat logs for all chats
+                    chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(
+                        client)
+                    write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict,
+                                              deletedChatIds, chatIdPhoneNumberDict)
 
-        elif type_of_extraction == 3:
-            # Get chat logs for all chats
-            chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(
-                client)
-            write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict,
-                                      deletedChatIds, chatIdPhoneNumberDict)
-
-            compress_and_hash_extraction()
-
-        else:
-            print("Please select a correct number.")
+                    compress_and_hash_extraction()
+                elif type_of_extraction == -1:
+                    response = 0
+                else:
+                    print("Please select a correct number.")
+            except ValueError:
+                print("Please select a correct number.")
