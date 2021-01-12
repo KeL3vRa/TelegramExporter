@@ -135,7 +135,7 @@ dmypy.json
 .idea
 
 #folder
-extraction/
+extractions/
 media/
 
 #Telegram session file
