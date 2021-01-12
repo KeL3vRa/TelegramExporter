@@ -8,6 +8,7 @@ if(![string]::IsNullOrEmpty($pythonVersion))
     if($numberVersion[1] -like "3*")
     {
         python telegramexporter.py
+        Read-Host -Prompt "Press any key to continue"
     }
     else
     {
@@ -19,6 +20,7 @@ elseif(![string]::IsNullOrEmpty($python3Version))
 {
     
     python3 telegramexporter.py
+    Read-Host -Prompt "Press any key to continue"
 }
 else
 {
