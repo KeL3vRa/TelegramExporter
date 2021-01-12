@@ -766,7 +766,7 @@ def show_banner():
 if __name__ == "__main__":
     show_banner()
     # Create an instance of the pyrogram client
-    with Client("my_account") as client:
+    with Client("my_account", hide_password=True) as client:
 
         if os.path.exists("extraction"):
             clean_folder = input("Do you want to clean extraction folder from previous extractions files? (y/N): ")
