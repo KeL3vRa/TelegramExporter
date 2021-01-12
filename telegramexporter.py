@@ -82,10 +82,10 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
             partecipants_ids.append(members.user.id)
     except Exception as e:
         if e.__str__().__contains__("ChatParticipantsForbidden"):
-            print(f"[{classes.BColor.FAIL}get_chat_logs_by_identifier{classes.BColor.ENDC}] "
-                  f"Members can not be retrieved because it's a channel or an old private group. In the latter case, "
-                  f"Telegram denies the possibility to get the full list of members; it's possible to show only users"
-                  f"who wrote at least one message into the chat.")
+            print(f"[{classes.BColor.FAIL}write_all_members_channel_logs_file{classes.BColor.ENDC}] "
+                  f"Members can not be retrieved because it's a channel or an old private group. \nIn the latter case, "
+                  f"Telegram denies the possibility to get the full list of members;\n it's possible to show only users"
+                  f"who wrote at least one message into the chat." + "\n\n")
 
     # Retrieves the folder into which create the chat's media folder
     json_config = open("configuration.json", "r")
@@ -356,9 +356,10 @@ def menu_get_contact(client_instance):
 
     # returns the chatId connected to the user/group/channel/etc.
     if key < len(users):
-        return users[key].id
+        return users[key].id, client_instance.get_chat(users[key].id).type
     else:
-        return list(non_user_dict)[key - len(users)]
+        chat_id = list(non_user_dict)[key - len(users)]
+        return chat_id, non_contact_type_dict[chat_id]
 
 
 def menu_get_multiple_contact(client_instance):
@@ -389,6 +390,7 @@ def menu_get_multiple_contact(client_instance):
 
     key = 0
     ids = []
+    types_dict = dict()
 
     for user in users:
         chat_data_to_log = ""
@@ -404,13 +406,15 @@ def menu_get_multiple_contact(client_instance):
         print(f"[{classes.BColor.OKBLUE}*{classes.BColor.ENDC}] " + str(key) + " " + chat_data_to_log)
         key += 1
         ids.append(user.id)
+        types_dict[user.id] = client_instance.get_chat(user.id).type
 
     for chat_id in non_user_dict:
         print(f"[{classes.BColor.OKBLUE}*{classes.BColor.ENDC}] " + str(key) + " " + non_user_dict[chat_id] + " (" + str(non_contact_type_dict[chat_id]) + ")")
         key += 1
         ids.append(chat_id)
+        types_dict[chat_id] = non_contact_type_dict[chat_id]
 
-    return ids
+    return ids, types_dict
 
 
 def get_multiple_chat_ids_by_dialogs(client_instance, multiple_ids_chats):
@@ -451,13 +455,13 @@ def get_multiple_chat_ids_by_dialogs(client_instance, multiple_ids_chats):
                     print(f"\n{classes.BColor.OKBLUE}[get_chat_ids_by_dialogs]{classes.BColor.ENDC}" +
                           " Retrieved chat with username: {}".format(dialog.chat.username))
 
-                if dialog.chat.title is not None:
+                if dialog.chat.title is not None and dialog.chat.id not in chat_ids_list:
                     chat_ids_list.append(dialog.chat.id)
                     chat_id_title_dict[dialog.chat.id] = dialog.chat.title
                     print(f"\n{classes.BColor.OKBLUE}[get_chat_ids_by_dialogs]{classes.BColor.ENDC}" +
                           " Retrieved chat with title: {}".format(dialog.chat.title))
 
-                if dialog.chat.first_name is not None:
+                if dialog.chat.first_name is not None and dialog.chat.id not in chat_ids_list:
                     if dialog.chat.id not in chat_ids_list:
                         chat_ids_list.append(dialog.chat.id)
                     # Identify the full name of the person who the chat relates to
@@ -495,6 +499,7 @@ def get_chat_ids_by_dialogs(client_instance, single_chat_id=None):
     chat_id_full_name_dict = dict()
     chat_id_phone_number_dict = dict()
     deleted_chat_ids = list()
+    chat_type_dict = dict()
 
     for dialog in client_instance.iter_dialogs():
         # If user hasn't specified a particular user to extract or if he wants to extract a particular chat
@@ -539,12 +544,14 @@ def get_chat_ids_by_dialogs(client_instance, single_chat_id=None):
                       "it means the other user deleted his account".format(dialog.chat.id))
                 deleted_chat_ids.append(dialog.chat.id)
 
+            chat_type_dict[dialog.chat.id] = dialog.chat.type
+
     return chat_ids_list, chat_id_usernames_dict, chat_id_title_dict, \
-           chat_id_full_name_dict, deleted_chat_ids, chat_id_phone_number_dict
+           chat_id_full_name_dict, deleted_chat_ids, chat_id_phone_number_dict, chat_type_dict
 
 
 def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_dict, chat_id_title_dict,
-                              chat_id_full_name_dict, deleted_chat_ids, chat_id_phone_number_dict):
+                              chat_id_full_name_dict, deleted_chat_ids, chat_id_phone_number_dict, chat_type):
     """
        Writes the chat logs for all chats (also deleted chats)
        Args:
@@ -581,12 +588,17 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
             file_name_prefix = file_name_prefix + "{}_".format(chat_id_full_name_dict[chat_id])
         if chat_id in chat_id_phone_number_dict:
             file_name_prefix = file_name_prefix + "{}_".format(chat_id_phone_number_dict[chat_id])
+        if type(chat_type) is str:
+            file_name_prefix = file_name_prefix + chat_type
+        else:
+            file_name_prefix = file_name_prefix + chat_type[chat_id]
         # Removing illegal characters from file name name
         file_name_prefix = (file_name_prefix.replace("\\", "_")).replace("/", "_")
         # Creates the directory where to store medias
         directory_name = file_name_prefix
         file_name = file_name_prefix + ".csv"
         file_name = _CHAT_PATH + _OS_SEP + file_name
+
 
         # Logs about existing chats
         print(f"[{classes.BColor.OKBLUE}write_all_chats_logs_file{classes.BColor.ENDC}]" +
@@ -616,14 +628,16 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
                     file.write(classes.User(user).to_string() + "\n" )
         else:
             print(f"[{classes.BColor.FAIL}write_all_members_channel_logs_file{classes.BColor.ENDC}] "
-                  f"No members into chat " + "\n\n")
+                  f"Members can not be retrieved because it's a channel or an old private group. \nIn the latter case, "
+                  f"Telegram denies the possibility to get the full list of members;\n it's possible to show only users"
+                  f"who wrote at least one message into the chat." + "\n\n")
 
     # if there are deleted chats
     if len(deleted_chat_ids) != 0:
         # Logs about deleted chats
         print(f"[{classes.BColor.OKBLUE}write_all_chats_logs_file{classes.BColor.ENDC}] Processing deleted chats \n\n")
         for chat_id in deleted_chat_ids:
-            header_string = "ID"
+            header_string = _ALL_CHATS_HEADER_STRING
             directory_name = str(chat_id) + "_deleted"
             file_name = str(chat_id) + "_deleted.csv"
             file_name = _CHAT_PATH + _OS_SEP + file_name
@@ -802,7 +816,6 @@ if __name__ == "__main__":
                 if clean_folder == 'y':
                     clean_extraction_folder()
 
-            create_extraction_folders()
             try:
                 type_of_extraction = int(input("\nEnter: \n[1] to extract the chats for a single user "
                                                "         \n[2] to extract the chats for multiple users"
@@ -811,28 +824,31 @@ if __name__ == "__main__":
                                                "         \nPlease enter your choice: "))
 
                 if type_of_extraction == 1:
+                    create_extraction_folders()
                     # Get chat logs for a user-specified chat
-                    chatId = menu_get_contact(client)
-                    chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(
+                    chatId, chat_type = menu_get_contact(client)
+                    chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict, chat_type_list = get_chat_ids_by_dialogs(
                         client, chatId)
                     write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict,
-                                              chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict)
+                                              chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict, chat_type)
                     compress_and_hash_extraction()
 
                 elif type_of_extraction == 2:
-                    chatIds = menu_get_multiple_contact(client)
+                    create_extraction_folders()
+                    chatIds, chat_types = menu_get_multiple_contact(client)
                     chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, chatIdPhoneNumberDict = \
                         get_multiple_chat_ids_by_dialogs(client, chatIds)
                     write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict,
-                                              chatIdFullNameDict, [], chatIdPhoneNumberDict)
+                                              chatIdFullNameDict, [], chatIdPhoneNumberDict, chat_types)
                     compress_and_hash_extraction()
 
                 elif type_of_extraction == 3:
+                    create_extraction_folders()
                     # Get chat logs for all chats
-                    chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, chatIdPhoneNumberDict = get_chat_ids_by_dialogs(
-                        client)
+                    chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict, deletedChatIds, \
+                    chatIdPhoneNumberDict, chat_type_dict = get_chat_ids_by_dialogs(client)
                     write_all_chats_logs_file(client, chatIdsList, chatIdUsernamesDict, chatIdTitleDict, chatIdFullNameDict,
-                                              deletedChatIds, chatIdPhoneNumberDict)
+                                              deletedChatIds, chatIdPhoneNumberDict, chat_type_dict)
 
                     compress_and_hash_extraction()
                 elif type_of_extraction == -1:
@@ -841,3 +857,4 @@ if __name__ == "__main__":
                     print("Please select a correct number.")
             except ValueError:
                 print("Please select a correct number.")
+
