@@ -8,23 +8,17 @@ class User:
 
         self.id = pyrogram_user_obj.id
         self.is_bot = pyrogram_user_obj.is_bot
-        self.first_name = "" if pyrogram_user_obj.first_name is None else pyrogram_user_obj.first_name
+        self.first_name = "N.A." if pyrogram_user_obj.first_name is None else pyrogram_user_obj.first_name
         self.last_name = "" if pyrogram_user_obj.last_name is None else pyrogram_user_obj.last_name
-        self.username = "" if pyrogram_user_obj.username is None else pyrogram_user_obj.username
-        self.phone_number = "" if pyrogram_user_obj.phone_number is None else pyrogram_user_obj.phone_number
+        self.username = "N.A." if pyrogram_user_obj.username is None else pyrogram_user_obj.username
+        self.phone_number = "N.A." if pyrogram_user_obj.phone_number is None else "+" + pyrogram_user_obj.phone_number
 
     def to_string(self):
         return_string = ""
-        return_string = return_string + "Username = {}".format(self.username) if self.username != "" \
-            else return_string
-        return_string = return_string + ", " if len(return_string) != 0 else return_string  # to add a fields separator
-        return_string = return_string + "Name = {}".format(self.first_name) if self.first_name != "" \
-            else return_string
-        return_string = return_string + " {}".format(self.last_name) if self.last_name != "" \
-            else return_string
-        return_string = return_string + ", " if len(return_string) != 0 else return_string  # to add a fields separator
-        return_string = return_string + "Phone number = {}".format(self.phone_number) if self.phone_number != "" \
-            else return_string
+
+        return_string = return_string + self.username + "§"
+        return_string = return_string + self.first_name + " " + self.last_name + "§"
+        return_string = return_string + self.phone_number
 
         return return_string
 
