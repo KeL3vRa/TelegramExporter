@@ -663,7 +663,7 @@ def clean_extraction_folder():
     Cleans the entire extraction folder, deleting all previous extractions
     """
     folder = "extraction"
-    print(f"[{classes.BColor.OKBLUE}clean_extraction_folder{classes.BColor.ENDC}] \n"
+    print(f"[{classes.BColor.OKBLUE}clean_extraction_folder{classes.BColor.ENDC}] "
           f"Removing files from folder " + folder)
     for filename in os.listdir(folder):
         file_path = os.path.join(folder, filename)
