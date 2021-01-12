@@ -18,7 +18,7 @@ To do this, you need to login on "https://my.telegram.org/auth?to=apps", enterin
 After that, you'll receive a code on Telegram to enter to authenticate.
 After authenticating, you must create a new application, to which you must associate a name; Telegram will take care of generating, instead, the values "api_id" and "api_hash".
 Once these values are obtained, you will have to insert them in the "config.ini" file instead of the dummy values inserted by default.
-After that, you can start the "run.cmd" (for Windows systems) or "run.sh" (for Linux systems).
+After that, you can start the "run.ps1" (for Windows systems) or "run.sh" (for Linux systems).
 
 ## First boot
 At the first startup, you will be asked to enter the phone number (including area code, for example: +39 for numbers registered in Italy) associated with the account from which you want to perform the extraction.
