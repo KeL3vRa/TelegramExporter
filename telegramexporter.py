@@ -810,16 +810,17 @@ if __name__ == "__main__":
     show_banner()
     response = -1
     # Create an instance of the pyrogram client
+
+    if os.path.exists("extraction"):
+        clean_folder = input("Do you want to clean extraction folder from previous extractions files? (y/N): ")
+        if clean_folder == 'y':
+            clean_extraction_folder()
+
     while response != 0:
 
         update_folders()
 
         with Client("my_account", hide_password=True) as client:
-
-            if os.path.exists("extraction"):
-                clean_folder = input("Do you want to clean extraction folder from previous extractions files? (y/N): ")
-                if clean_folder == 'y':
-                    clean_extraction_folder()
 
             try:
                 type_of_extraction = int(input("\nEnter: \n[1] to extract the chats for a single user "
