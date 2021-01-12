@@ -18,24 +18,46 @@ _TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 _ALL_CHATS_HEADER_STRING = "USERNAME§NAME§PHONE_NUMBER§TIMESTAMP§MESSAGE§DETAILS (OPTIONAL)"
 _OS_SEP = os.sep
 
-# DATETIME FOR EXTRACTION
-_extraction_date = datetime.now().strftime("%d-%m-%Y %H-%M-%S")
-
 # CURRENT EXTRACTION FOLDER
-_EXTRACTION_FOLDER = "extraction" + _OS_SEP + "Extraction_" + _extraction_date
+_EXTRACTION_FOLDER = ""
 
 # PATH USED FOR THE EXTRACTION OF CHATS, MEDIA AND MEMBERS
 _CHATS = "chats"
 _DOWNLOAD_MEDIA_PATH = "media"
 _MEMBERS_FILE_SUFFIX = "members"
 
-_CHAT_PATH = _EXTRACTION_FOLDER + _OS_SEP + _CHATS
-_MEDIA_PATH = _EXTRACTION_FOLDER + _OS_SEP + _DOWNLOAD_MEDIA_PATH
-_MEMBERS_PATH = _EXTRACTION_FOLDER + _OS_SEP + _MEMBERS_FILE_SUFFIX
+_CHAT_PATH = ""
+_MEDIA_PATH = ""
+_MEMBERS_PATH = ""
 
 # EXTRACTION ZIP AND HASH FILE
-_EXTRACTION_ZIP = _EXTRACTION_FOLDER + _OS_SEP + "extraction.zip"
-_FILE_HASH = _EXTRACTION_FOLDER + _OS_SEP + "extraction_archive_hash.txt"
+_EXTRACTION_ZIP = ""
+_FILE_HASH = ""
+
+
+def update_folders():
+    # DATETIME FOR EXTRACTION
+    _extraction_date = datetime.now().strftime("%d-%m-%Y %H-%M-%S")
+
+    # CURRENT EXTRACTION FOLDER
+    global _EXTRACTION_FOLDER
+    _EXTRACTION_FOLDER = "extraction" + _OS_SEP + "Extraction_" + _extraction_date
+
+    global _CHAT_PATH
+    _CHAT_PATH = _EXTRACTION_FOLDER + _OS_SEP + _CHATS
+
+    global _MEDIA_PATH
+    _MEDIA_PATH = _EXTRACTION_FOLDER + _OS_SEP + _DOWNLOAD_MEDIA_PATH
+
+    global  _MEMBERS_PATH
+    _MEMBERS_PATH = _EXTRACTION_FOLDER + _OS_SEP + _MEMBERS_FILE_SUFFIX
+
+    # EXTRACTION ZIP AND HASH FILE
+    global  _EXTRACTION_ZIP
+    _EXTRACTION_ZIP = _EXTRACTION_FOLDER + _OS_SEP + "extraction.zip"
+
+    global _FILE_HASH
+    _FILE_HASH = _EXTRACTION_FOLDER + _OS_SEP + "extraction_archive_hash.txt"
 
 
 # Get the all messages in the chat with a given user
@@ -579,7 +601,7 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
         if partecipants_ids:
             print(f"[{classes.BColor.OKBLUE}write_all_chats_logs_file{classes.BColor.ENDC}] "
                   f"Processing members chats \n\n")
-            header = "MEMBERS"
+            header = "USERNAME§NAME§PHONE NUMBER"
 
             directory = _MEMBERS_PATH
 
@@ -591,7 +613,7 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
             with open(saving_file_path, "w", encoding="UTF-16") as file:
                 file.write(header + "\n")
                 for user in client_instance.get_users(partecipants_ids):
-                    file.write(classes.User(user).to_string())
+                    file.write(classes.User(user).to_string() + "\n" )
         else:
             print(f"[{classes.BColor.FAIL}write_all_members_channel_logs_file{classes.BColor.ENDC}] "
                   f"No members into chat " + "\n\n")
@@ -770,6 +792,9 @@ if __name__ == "__main__":
     response = -1
     # Create an instance of the pyrogram client
     while response != 0:
+
+        update_folders()
+
         with Client("my_account", hide_password=True) as client:
 
             if os.path.exists("extraction"):
