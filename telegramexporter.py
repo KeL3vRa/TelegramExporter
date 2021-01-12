@@ -588,7 +588,7 @@ def write_all_chats_logs_file(client_instance, chat_ids_list, chat_id_usernames_
 
             with open(saving_file_path, "w", encoding="UTF-16") as file:
                 file.write(header + "\n")
-                for user in client.get_users(partecipants_ids):
+                for user in client_instance.get_users(partecipants_ids):
                     file.write(classes.User(user).to_string())
         else:
             print(f"[{classes.BColor.FAIL}write_all_members_channel_logs_file{classes.BColor.ENDC}] "
@@ -768,9 +768,10 @@ if __name__ == "__main__":
     # Create an instance of the pyrogram client
     with Client("my_account") as client:
 
-        clean_folder = input("Do you want to clean extraction folder from previous extractions files? (y/N): ")
-        if clean_folder == 'y':
-            clean_extraction_folder()
+        if os.path.exists("extraction"):
+            clean_folder = input("Do you want to clean extraction folder from previous extractions files? (y/N): ")
+            if clean_folder == 'y':
+                clean_extraction_folder()
 
         create_extraction_folders()
 
