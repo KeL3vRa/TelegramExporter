@@ -4,7 +4,6 @@ from pyrogram.errors import ChatAdminRequired
 from datetime import datetime
 from classes import classes
 import time
-import sys
 import os
 import json
 import shutil
@@ -115,7 +114,7 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
 
             # Create a list with ALL messages exchanged with userIdentifier
             chat = list()
-            # DEBUG: for message in client.get_history(chat_identifier, limit=3): instead of for message in client.iter_history(chat_identifier):
+            # DEBUG: for message in client_instance.get_history(chat_identifier, limit=3): instead of for message in client.iter_history(chat_identifier):
             for message in client_instance.iter_history(chat_identifier):
                 chat.append(message)
             # Iterate over the previously created list
@@ -322,7 +321,7 @@ def menu_get_contact(client_instance):
 
     if not users and not bool(non_user_dict):
         print(f"{classes.BColor.FAIL}No contacts found!{classes.BColor.ENDC}")
-        sys.exit()
+        raise Exception("No contacts found")
 
     key = 0
     total_contacts_count = len(users) + len(non_user_dict)
@@ -348,11 +347,17 @@ def menu_get_contact(client_instance):
             print(f"[{classes.BColor.OKBLUE}*{classes.BColor.ENDC}] " + str(key) + " " + non_user_dict[chat_id] + " (" + str(non_contact_type_dict[chat_id]) + ")")
             key += 1
 
-        print(f"[{classes.BColor.OKBLUE}menu_get_contact{classes.BColor.ENDC}] Select number please: ")
-        key = int(input())
-        if key < 0 or key >= len(users) + len(non_user_dict):
-            print(f"{classes.BColor.WARNING}[menu_get_contact] Invalid input!!!{classes.BColor.ENDC}")
-            sys.exit()
+        select_key = True
+        while select_key != 0:
+            print(f"[{classes.BColor.OKBLUE}menu_get_contact{classes.BColor.ENDC}] Select number please: ")
+            try:
+                key = int(input())
+                if key < 0 or key >= len(users) + len(non_user_dict):
+                    print(f"{classes.BColor.WARNING}[menu_get_contact] Invalid selection.{classes.BColor.ENDC}")
+                else:
+                    select_key = False
+            except ValueError:
+                print(f"{classes.BColor.WARNING}[menu_get_contact] Please, insert a number.{classes.BColor.ENDC}")
 
     # returns the chatId connected to the user/group/channel/etc.
     if key < len(users):
@@ -386,7 +391,7 @@ def menu_get_multiple_contact(client_instance):
 
     if not users and not bool(non_user_dict):
         print(f"{classes.BColor.FAIL}No contacts found!{classes.BColor.ENDC}")
-        sys.exit()
+        raise Exception("No contacts found")
 
     key = 0
     ids = []
@@ -857,4 +862,7 @@ if __name__ == "__main__":
                     print("Please select a correct number.")
             except ValueError:
                 print("Please select a correct number.")
+            except Exception as e:
+                if not e.__str__().__contains__("No contacts found"):
+                    print(e.__str__())
 
