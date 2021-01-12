@@ -61,7 +61,9 @@ def get_chat_logs_by_identifier(client_instance, chat_identifier, directory_name
     except Exception as e:
         if e.__str__().__contains__("ChatParticipantsForbidden"):
             print(f"[{classes.BColor.FAIL}get_chat_logs_by_identifier{classes.BColor.ENDC}] "
-                  f"Members can not be retrieved.")
+                  f"Members can not be retrieved because it's a channel or an old private group. In the latter case, "
+                  f"Telegram denies the possibility to get the full list of members; it's possible to show only users"
+                  f"who wrote at least one message into the chat.")
 
     # Retrieves the folder into which create the chat's media folder
     json_config = open("configuration.json", "r")
@@ -746,7 +748,7 @@ def compress_and_hash_extraction():
             file.write('\nSHA512: ' + sha)
 
         print(
-            f"[{classes.BColor.OKBLUE}compress_and_hash_extraction{classes.BColor.ENDC}] Zip hashes created successfully")
+            f"[{classes.BColor.OKBLUE}compress_and_hash_extraction{classes.BColor.ENDC}] Zip hashes created successfully\n")
     except Exception:
         print(f"{classes.BColor.FAIL}Error creating hash file{classes.BColor.ENDC}")
 
